@@ -17,12 +17,6 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-body {
-  display: grid;
-  place-items: center;
-  min-height: 100vh;
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%;
