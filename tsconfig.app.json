@@ -28,8 +28,8 @@
       "@components/*": ["./src/components/*"],
       "@hooks/*": ["./src/hooks/*"],
       "@utils/*": ["./src/utils/*"],
-      "@common/*": ["./src/common/*"],
-    },
+      "@common/*": ["./src/common/*"]
+    }
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]

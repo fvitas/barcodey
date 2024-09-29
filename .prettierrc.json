@@ -6,12 +6,15 @@
   "printWidth": 120,
   "trailingComma": "all",
   "arrowParens": "avoid",
-  "jsxBracketSameLine": true,
+  "jsxBracketSameLine": false,
   "jsxSingleQuote": false,
   "quoteProps": "as-needed",
   "htmlWhitespaceSensitivity": "css",
   "vueIndentScriptAndStyle": false,
   "embeddedLanguageFormatting": "auto",
   "singleAttributePerLine": false,
-  "plugins": ["prettier-plugin-organize-imports"]
+  "plugins": ["@trivago/prettier-plugin-sort-imports"],
+  "importOrder": ["^react", "^@", "^[./]"],
+  "importOrderSeparation": false,
+  "importOrderSortSpecifiers": false
 }
