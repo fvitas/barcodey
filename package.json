@@ -46,10 +46,12 @@
     "prettier": "3.3.3",
     "react": "18.3.1",
     "react-dom": "18.3.1",
+    "react-router-dom": "6.26.2",
     "sonner": "1.5.0",
     "tailwind-merge": "2.5.2",
     "tailwindcss-animate": "1.0.7",
-    "vaul": "0.9.3"
+    "vaul": "0.9.3",
+    "vite-tsconfig-paths": "^5.0.1"
   },
   "devDependencies": {
     "@eslint/js": "9.10.0",

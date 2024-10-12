@@ -1,9 +1,18 @@
 import { motion } from 'framer-motion'
-import { CreditCard, Home, Plus, Settings } from 'lucide-react'
+import {
+  CreditCard as IconCreditCard,
+  Home as IconHome,
+  Plus as IconPlus,
+  Settings as IconSettings,
+} from 'lucide-react'
 import { useState } from 'react'
+import { Routes, Route, Outlet, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Label } from '@components/ui/label.tsx'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@components/ui/select.tsx'
+import { Switch } from '@components/ui/switch.tsx'
 
 const loyaltyCards = [
   { id: 1, name: 'Starbucks', barcode: '1234567890' },
@@ -44,9 +53,11 @@ const loyaltyCards = [
 //   );
 // }
 
-function MenuBottomBar() {
-  let [tapped, setTapped] = useState(false)
+interface MenuBottomBarProps {
+  isTapped: boolean
+}
 
+function MenuBottomBar({ isTapped }: MenuBottomBarProps) {
   const path1 = ' M 0 0 C 85.36 27.035 166.723 27.065 244 0 L 244 100 L 0 100 L 0 0 Z '
   // const path1 = ' M 0 0 C 81.059 -29.583 162.433 -29.543 244 0 L 244 100 L 0 100 L 0 0 Z '
   const path2 = ' M 0 0 C 85.36 3.857 166.703 3.867 244 0 L 244 100 L 0 100 L 0 0 Z '
@@ -78,14 +89,10 @@ function MenuBottomBar() {
       fill="white"
       preserveAspectRatio="none"
       className="absolute bottom-0 left-0 right-0 w-full h-[80px]"
-      onPointerDown={() => setTapped(true)}
-      onPointerUp={() => setTapped(false)}
-      onMouseDown={() => setTapped(true)}
-      onMouseUp={() => setTapped(false)}
     >
       <motion.path
         variants={pathVariants}
-        animate={tapped ? 'path1' : 'path2'}
+        animate={isTapped ? 'path1' : 'path2'}
         initial="path2"
         fill="white"
         style={{
@@ -114,7 +121,73 @@ function Barcode({ value }) {
   )
 }
 
-export function App() {
+function NavigationFooter() {
+  const [isTapped, setIsTapped] = useState(false)
+
+  return (
+    <footer className="relative shadow-sm">
+      <MenuBottomBar isTapped={isTapped} />
+
+      <nav className="relative flex justify-evenly items-center py-4">
+        <Link to="/">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            onPointerDown={() => setIsTapped(true)}
+            onPointerUp={() => setIsTapped(false)}
+          >
+            <IconHome className="h-6 w-6 fill-accent" />
+          </Button>
+        </Link>
+
+        <Button
+          className="bg-black rounded-full w-12 h-12 min-w-12"
+          size="icon"
+          onPointerDown={() => setIsTapped(true)}
+          onPointerUp={() => setIsTapped(false)}
+        >
+          <IconPlus className="h-6 w-6" color="white" />
+        </Button>
+
+        <Link to="/settings">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            onPointerDown={() => setIsTapped(true)}
+            onPointerUp={() => setIsTapped(false)}
+          >
+            <IconSettings className="h-6 w-6 fill-accent" />
+          </Button>
+        </Link>
+      </nav>
+    </footer>
+  )
+}
+
+const pageVariants = {
+  initial: direction => ({
+    x: direction > 0 ? '100%' : '-100%',
+    opacity: 0,
+  }),
+  in: {
+    x: 0,
+    opacity: 1,
+  },
+  out: direction => ({
+    x: direction < 0 ? '100%' : '-100%',
+    opacity: 0,
+  }),
+}
+
+const pageTransition = {
+  type: 'tween',
+  ease: 'anticipate',
+  duration: 0.5,
+}
+
+function Layout() {
   return (
     <div className="h-screen flex flex-col bg-gray-100">
       <header className="flex items-center justify-center p-4 bg-white shadow-sm">
@@ -122,41 +195,118 @@ export function App() {
       </header>
 
       <main className="flex-grow overflow-hidden">
-        <ScrollArea className="h-full p-4">
-          <div className="space-y-4">
-            {loyaltyCards.map(card => (
-              <Card key={card.id} className="bg-white">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{card.name}</CardTitle>
-                  <CreditCard className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold mb-2">{card.barcode}</div>
-                  <Barcode value={card.barcode} />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </ScrollArea>
+        <Outlet />
       </main>
 
-      <footer className="relative shadow-sm">
-        <MenuBottomBar />
-
-        <div className="relative flex justify-evenly items-center py-4 pointer-events-none">
-          <Button variant="ghost" size="icon">
-            <Home className="h-6 w-6 fill-accent" />
-          </Button>
-
-          <Button variant="ghost" className="bg-black rounded-full w-12 h-12 min-w-12" size="icon">
-            <Plus className="h-6 w-6" color="white" />
-          </Button>
-
-          <Button variant="ghost" size="icon">
-            <Settings className="h-6 w-6 fill-accent" />
-          </Button>
-        </div>
-      </footer>
+      <NavigationFooter />
     </div>
+  )
+}
+
+function Home() {
+  return (
+    <ScrollArea className="h-full p-4">
+      <motion.div className="space-y-4">
+        {loyaltyCards.map(card => (
+          <Card key={card.id} className="bg-white">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">{card.name}</CardTitle>
+              <IconCreditCard className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+
+            <CardContent>
+              <div className="text-2xl font-bold mb-2">{card.barcode}</div>
+              <Barcode value={card.barcode} />
+            </CardContent>
+          </Card>
+        ))}
+      </motion.div>
+    </ScrollArea>
+  )
+}
+
+function Settings() {
+  return (
+    <div>
+      {/*light/dark mode * card view, * sort by, name, date, usage * asc/desc * supported formats*/}
+
+      <form className="grid w-full items-start gap-6 overflow-auto p-4 pt-0">
+        <fieldset className="grid gap-6 rounded-lg p-4">
+          <div className="grid gap-3">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="dark-mode">Dark mode</Label>
+              <Switch id="dark-mode" />
+            </div>
+          </div>
+
+          <div className="grid gap-3">
+            <Label htmlFor="card-view">Card view</Label>
+            <Select defaultValue="2d">
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="2d">2D</SelectItem>
+                <SelectItem value="3d">3D</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-3">
+            <Label htmlFor="sort-by">Sort by</Label>
+            <Select defaultValue="date">
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="date">Date</SelectItem>
+                <SelectItem value="name">Name</SelectItem>
+                <SelectItem value="usage">Usage</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <label className="grid gap-3">
+            <Label htmlFor="sort">Sort</Label>
+
+            <Select defaultValue="descending">
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="ascending">Ascending</SelectItem>
+                <SelectItem value="descending">Descending</SelectItem>
+              </SelectContent>
+            </Select>
+          </label>
+        </fieldset>
+      </form>
+    </div>
+  )
+}
+
+function Camera() {
+  return <div>Camera</div>
+}
+
+function Photos() {
+  return <div>Photos</div>
+}
+
+export function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<Home />} />
+        {/*<Route path="barcode/:id" element={<Barcode />} />*/}
+        <Route path="settings" element={<Settings />} />
+        <Route path="camera" element={<Camera />} />
+        <Route path="photos" element={<Photos />} />
+        {/*<Route path="*" element={<NoMatch />} />*/}
+      </Route>
+    </Routes>
   )
 }
