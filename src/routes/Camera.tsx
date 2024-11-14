@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@components/ui/select.tsx'
+import { BrowserMultiFormatReader, Result } from '@zxing/library'
 
 export function Camera() {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -10,14 +11,11 @@ export function Camera() {
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>('')
 
   const [hasCameraError, setHasCameraError] = useState(false)
+  const [detectedNewBarcode, setDetectedNewBarcode] = useState<Result | null>(null)
 
   useEffect(() => {
     async function startCamera() {
       try {
-        if (stream.current) {
-          stream.current.getTracks().forEach(track => track.stop())
-        }
-
         // const isMobile = /Android|webOS|iPhone|iPad|iPod|Opera Mini|Mobile/i.test(navigator.userAgent)
         //
         // const constraints = selectedDeviceId
@@ -46,23 +44,52 @@ export function Camera() {
         setSelectedCameraLabel(
           streamCameras.find(camera => camera.label === newStream?.getVideoTracks()?.at(0)?.label).value,
         )
-      } catch {
+      } catch (error) {
+        console.log(error)
         setHasCameraError(true)
       }
     }
 
     function stopCameras() {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream
-        const tracks = stream.getTracks()
-        tracks.forEach(track => track.stop())
-        videoRef.current.srcObject = null
+      if (stream.current) {
+        stream.current.getTracks().forEach(track => track.stop())
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = null
+        }
       }
     }
 
     startCamera()
 
     return () => stopCameras()
+  }, [selectedDeviceId])
+
+  useEffect(() => {
+    const reader = new BrowserMultiFormatReader()
+    reader.timeBetweenDecodingAttempts = 100
+
+    async function runScan() {
+      let deviceId = selectedDeviceId
+      if (!deviceId) {
+        const videoInputDevices = await reader.listVideoInputDevices()
+        deviceId = videoInputDevices[0]?.deviceId
+      }
+
+      if (!deviceId) {
+        return
+      }
+
+      await reader.decodeFromVideoDevice(deviceId, 'video', result => {
+        if (result) {
+          setDetectedNewBarcode(result)
+        }
+      })
+    }
+
+    runScan()
+
+    return () => reader.reset()
   }, [selectedDeviceId])
 
   if (hasCameraError) {
@@ -73,7 +100,7 @@ export function Camera() {
     )
   }
   return (
-    <div className="flex flex-col h-full w-full items-center justify-center">
+    <div className="relative flex flex-col h-full w-full items-center justify-center">
       <label className="grid gap-3">
         <Select value={selectedCameraLabel} onValueChange={value => setSelectedDeviceId(value)}>
           <SelectTrigger>
@@ -90,7 +117,23 @@ export function Camera() {
         </Select>
       </label>
 
-      <video ref={videoRef} className="h-full w-full" autoPlay playsInline />
+      <video
+        ref={videoRef}
+        id="video"
+        className="h-full w-full"
+        autoPlay
+        muted
+        playsInline
+        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+      />
+
+      {detectedNewBarcode && (
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+          <p className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-2 py-1 rounded">
+            {detectedNewBarcode.getText()}
+          </p>
+        </div>
+      )}
     </div>
   )
 }

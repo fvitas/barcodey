@@ -142,14 +142,16 @@ function NavigationFooter() {
           </Button>
         </Link>
 
-        <Button
-          className="bg-black rounded-full w-12 h-12 min-w-12"
-          size="icon"
-          onPointerDown={() => setIsTapped(true)}
-          onPointerUp={() => setIsTapped(false)}
-        >
-          <IconPlus className="h-6 w-6" color="white" />
-        </Button>
+        <Link to="/camera">
+          <Button
+            className="bg-black rounded-full w-12 h-12 min-w-12"
+            size="icon"
+            onPointerDown={() => setIsTapped(true)}
+            onPointerUp={() => setIsTapped(false)}
+          >
+            <IconPlus className="h-6 w-6" color="white" />
+          </Button>
+        </Link>
 
         <Link to="/settings">
           <Button
