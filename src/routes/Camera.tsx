@@ -1,7 +1,7 @@
-import { twJoin } from 'tailwind-merge'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BrowserMultiFormatReader, Result } from '@zxing/library'
+import BarcodeFormat from '@zxing/library/esm/core/BarcodeFormat'
 
 export function Camera() {
   const navigate = useNavigate()
@@ -9,7 +9,6 @@ export function Camera() {
   const stream = useRef<MediaStream>(null)
 
   const [hasCameraError, setHasCameraError] = useState(false)
-  const [detectedNewBarcode, setDetectedNewBarcode] = useState<Result | null>(null)
 
   useEffect(() => {
     const reader = new BrowserMultiFormatReader()
@@ -43,11 +42,17 @@ export function Camera() {
         return
       }
 
-      await reader.decodeFromVideoDevice(deviceId, 'video', result => {
+      await reader.decodeFromVideoDevice(deviceId, 'video', (result: Result) => {
         if (result) {
-          setDetectedNewBarcode(result)
           reader.reset()
-          // navigate(`/new-barcode/`, { state: result.text })
+          stopCameras()
+
+          navigate(`/new-barcode/`, {
+            state: {
+              barcodeValue: result.getText(),
+              barcodeType: BarcodeFormat[result.getBarcodeFormat()],
+            },
+          })
         }
       })
     }
@@ -65,8 +70,8 @@ export function Camera() {
     startCamera().then(runScan)
 
     return () => {
-      stopCameras()
       reader.reset()
+      stopCameras()
     }
   }, [])
 
@@ -91,22 +96,11 @@ export function Camera() {
       />
 
       <div
-        className={twJoin(
-          'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 max-w-lg aspect-video rounded-lg',
-          detectedNewBarcode && 'border-2 border-lime-500',
-        )}
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 max-w-lg aspect-video rounded-lg"
         style={{
           boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.7)',
         }}
       />
-
-      {detectedNewBarcode && (
-        <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-          <p className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-2 py-1 rounded">
-            {detectedNewBarcode.getText()}
-          </p>
-        </div>
-      )}
     </div>
   )
 }
