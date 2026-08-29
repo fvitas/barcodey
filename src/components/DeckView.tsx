@@ -74,7 +74,7 @@ function DeckFace({ card, open }: { card: Card; open: boolean }) {
     <div
       style={face.style}
       className={`relative flex aspect-[1.586] w-full flex-col justify-between p-4 shadow-lg shadow-slate-900/15 ${face.className} ${
-        open ? 'rounded-t-2xl' : 'rounded-2xl transition-[border-radius] duration-[450ms] ease-out'
+        open ? 'touch-none rounded-t-2xl' : 'rounded-2xl transition-[border-radius] duration-[450ms] ease-out'
       }`}
     >
       {photoFace && card.cover !== undefined ? (
@@ -117,6 +117,7 @@ type Gesture = {
   vy: number
   moved: boolean
   axis: 'x' | 'y' | null
+  panel: boolean // started inside the scrollable details panel — scrolling, not a pull-to-close
   escaped: boolean // x-swipes go position:fixed to escape the stage clip and reach the screen edge
   lift: boolean
   liftY: number // the card's translateY at the moment it lifted
@@ -435,6 +436,7 @@ export function DeckView({
       vy: 0,
       moved: false,
       axis: null,
+      panel: open && event.target instanceof Element && event.target.closest('[data-deck-panel]') !== null,
       escaped: false,
       lift: false,
       liftY: 0,
@@ -485,7 +487,18 @@ export function DeckView({
       active.axis = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y'
       clearTimeout(holdTimer.current) // real movement before the hold fires means scroll or swipe, not lift
     }
-    if (!active.moved || open) return
+    if (!active.moved) return
+    if (open) {
+      // pull the open card down to close; upward pulls rubber-band
+      if (active.panel || active.axis !== 'y') return
+      const el = cardEls.current.get(active.cardId)
+      if (el !== undefined) {
+        const pull = dy < 0 ? dy * 0.25 : dy
+        el.style.transition = 'none'
+        el.style.transform = `translateY(${-openRise + pull}px)`
+      }
+      return
+    }
     if (active.axis === 'x') {
       const index = orderRef.current.indexOf(active.cardId)
       if (index === orderRef.current.length - 1) return // back card: no swipe, nothing behind it to go to
@@ -548,7 +561,22 @@ export function DeckView({
       onToggle(active.cardId)
       return
     }
-    if (open) return
+    if (open) {
+      if (active.panel || active.axis !== 'y') return
+      const dy = active.lastY - active.startY
+      if (!cancelled && (dy > swipeDistance || active.vy > swipeVelocity)) {
+        onToggle(active.cardId)
+        return
+      }
+      const el = cardEls.current.get(active.cardId)
+      if (el !== undefined) {
+        glide(el, () => {
+          el.style.transition = 'none'
+          el.style.transform = `translateY(${-openRise}px)`
+        })
+      }
+      return
+    }
     if (active.axis === 'x') {
       if (active.escaped) {
         const el = cardEls.current.get(active.cardId)
