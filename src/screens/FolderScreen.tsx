@@ -85,6 +85,8 @@ type FolderEditDrawerProps = {
 }
 
 function FolderEditDrawer({ folder, open, onClose, onRename, onDelete }: FolderEditDrawerProps) {
+  const [confirmOpen, setConfirmOpen] = useState(false)
+
   return (
     <Drawer.Root repositionInputs={false} open={open} onOpenChange={isOpen => !isOpen && onClose()}>
       <Drawer.Portal>
@@ -96,7 +98,7 @@ function FolderEditDrawer({ folder, open, onClose, onRename, onDelete }: FolderE
             <div className="mb-5 flex items-center justify-between">
               <Drawer.Title className="text-lg font-extrabold text-foreground">Edit folder</Drawer.Title>
               <button
-                onClick={onDelete}
+                onClick={() => setConfirmOpen(true)}
                 className={`${pressable} -mr-2 flex items-center gap-1.5 rounded-full px-2 py-1 text-sm font-semibold text-destructive`}
               >
                 <Trash2Icon className="size-4" />
@@ -124,6 +126,16 @@ function FolderEditDrawer({ folder, open, onClose, onRename, onDelete }: FolderE
           </div>
         </Drawer.Content>
       </Drawer.Portal>
+
+      <ConfirmDrawer
+        nested
+        open={confirmOpen}
+        title="Delete this folder?"
+        description={<>Cards in “{folder.name}” aren’t deleted — they go back to your wallet.</>}
+        confirmLabel="Delete folder"
+        onConfirm={onDelete}
+        onClose={() => setConfirmOpen(false)}
+      />
     </Drawer.Root>
   )
 }

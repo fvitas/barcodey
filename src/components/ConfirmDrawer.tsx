@@ -3,6 +3,7 @@ import { pressable } from '@/lib/utils'
 
 type ConfirmDrawerProps = {
   open: boolean
+  nested?: boolean // opened from inside a modal drawer — body portals are inert there
   title: string
   description: React.ReactNode
   confirmLabel: string
@@ -10,9 +11,10 @@ type ConfirmDrawerProps = {
   onClose: () => void
 }
 
-export function ConfirmDrawer({ open, title, description, confirmLabel, onConfirm, onClose }: ConfirmDrawerProps) {
+export function ConfirmDrawer({ open, nested = false, title, description, confirmLabel, onConfirm, onClose }: ConfirmDrawerProps) {
+  const Root = nested ? Drawer.NestedRoot : Drawer.Root
   return (
-    <Drawer.Root open={open} onOpenChange={isOpen => !isOpen && onClose()}>
+    <Root open={open} onOpenChange={isOpen => !isOpen && onClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-50 bg-black/40" />
 
@@ -40,6 +42,6 @@ export function ConfirmDrawer({ open, title, description, confirmLabel, onConfir
           </div>
         </Drawer.Content>
       </Drawer.Portal>
-    </Drawer.Root>
+    </Root>
   )
 }
