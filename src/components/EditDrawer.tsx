@@ -9,7 +9,7 @@ import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { haptic } from '@/lib/haptics'
-import { barcodeFormats, formatLabels, type Card, type CardPhotos, type PhotoSide } from '@/lib/model'
+import { barcodeFormats, digitsOnlyFormats, formatLabels, type Card, type CardPhotos, type PhotoSide } from '@/lib/model'
 import { extractPhotoColor } from '@/lib/photo-color'
 import { bakePhotoRotations } from '@/lib/photos'
 import { scanWithNativeScanner } from '@/lib/scanner'
@@ -207,6 +207,7 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
                       </span>
                       <Input
                         value={valueDraft ?? card.value}
+                        inputMode={digitsOnlyFormats.has(card.format) ? 'numeric' : undefined}
                         className="h-11 bg-card px-4 font-mono text-sm font-medium"
                         onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                           handleValueChange(card, event.target.value)

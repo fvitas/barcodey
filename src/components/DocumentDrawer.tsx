@@ -110,6 +110,7 @@ function DocumentFields({ value, rotations, onPatch, onRotate }: DocumentFieldsP
         <Input
           value={value.number ?? ''}
           placeholder="e.g. AB 123456"
+          autoCapitalize="characters"
           className="h-11 px-4 font-mono text-sm font-medium"
           onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
             onPatch({ number: event.target.value === '' ? undefined : event.target.value })

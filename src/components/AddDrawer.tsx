@@ -15,6 +15,7 @@ import { haptic } from '@/lib/haptics'
 import { capitalizeFirst, pressable } from '@/lib/utils'
 import {
   barcodeFormats,
+  digitsOnlyFormats,
   findDuplicateCard,
   formatLabels,
   type BarcodeFormat,
@@ -322,6 +323,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                   <Input
                     value={value}
                     placeholder="Type or paste the number"
+                    inputMode={digitsOnlyFormats.has(format) ? 'numeric' : undefined}
                     className="h-11 px-4 font-mono text-sm font-medium"
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) => setValue(event.target.value)}
                   />

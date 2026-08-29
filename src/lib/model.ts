@@ -118,6 +118,9 @@ export const formatLabels: Record<BarcodeFormat, string> = {
 // square 2D symbologies get centered fixed-width rendering; the rest span full width
 export const squareFormats: ReadonlySet<BarcodeFormat> = new Set(['qrcode', 'aztec', 'datamatrix'])
 
+// symbologies that only encode digits — number inputs switch to the numeric keyboard
+export const digitsOnlyFormats: ReadonlySet<BarcodeFormat> = new Set(['ean13', 'ean8', 'upca', 'upce', 'itf'])
+
 export const cardThemeGradients: Record<CardTheme, string> = {
   sunset: 'bg-gradient-to-br from-orange-400 via-rose-500 to-pink-600',
   ocean: 'bg-gradient-to-br from-sky-400 via-blue-600 to-indigo-700',
