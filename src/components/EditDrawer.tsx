@@ -1,3 +1,4 @@
+import { CameraIcon, PencilIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Drawer } from 'vaul'
 import { BrandField } from '@/components/BrandField'
@@ -7,9 +8,11 @@ import { ExpiryDateField } from '@/components/ExpiryDateField'
 import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { formatLabels, type Card, type CardPhotos, type PhotoSide } from '@/lib/model'
+import { haptic } from '@/lib/haptics'
+import { barcodeFormats, formatLabels, type Card, type CardPhotos, type PhotoSide } from '@/lib/model'
 import { extractPhotoColor } from '@/lib/photo-color'
 import { bakePhotoRotations } from '@/lib/photos'
+import { scanWithNativeScanner } from '@/lib/scanner'
 import { capitalizeFirst, pressable } from '@/lib/utils'
 
 type EditDrawerProps = {
@@ -25,6 +28,9 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
   const [rotations, setRotations] = useState<Record<string, number>>({})
   // name edits buffer here so an emptied field never persists; null mirrors card.name
   const [nameDraft, setNameDraft] = useState<string | null>(null)
+  const [numberOpen, setNumberOpen] = useState(false)
+  // same guard for the card number: an emptied field never persists
+  const [valueDraft, setValueDraft] = useState<string | null>(null)
   const coverPath = card !== null && card.cover !== undefined ? card.photos[card.cover.side] : undefined
   const coverSrc = usePhotoSrc(coverPath)
 
@@ -53,8 +59,27 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
     if (name.trim() !== '') onChange(current.id, { name })
   }
 
+  function handleValueChange(current: Card, value: string) {
+    setValueDraft(value)
+    if (value.trim() !== '') onChange(current.id, { value: value.trim() })
+  }
+
+  function handleRescan(current: Card) {
+    void scanWithNativeScanner()
+      .then(result => {
+        if (result !== null) {
+          haptic('success')
+          setValueDraft(null)
+          onChange(current.id, { value: result.value, format: result.format })
+        }
+      })
+      .catch(() => {})
+  }
+
   function handleClose() {
     setNameDraft(null)
+    setValueDraft(null)
+    setNumberOpen(false)
     if (card !== null && Object.keys(rotations).length > 0) {
       const { id, photos } = card
       const pending = rotations
@@ -174,14 +199,67 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
 
                 <ExpiryDateField value={card.expiry} onChange={expiry => onChange(card.id, { expiry })} />
 
-                <div className="rounded-xl bg-muted/60 px-4 py-3">
-                  <p className="text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
-                    {formatLabels[card.format]}
-                  </p>
-                  <p className="mt-0.5 font-mono text-sm font-medium tracking-widest text-muted-foreground">
-                    {card.value}
-                  </p>
-                </div>
+                {numberOpen ? (
+                  <div className="rounded-xl bg-muted/60 p-4">
+                    <label className="mb-4 block">
+                      <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+                        Card number
+                      </span>
+                      <Input
+                        value={valueDraft ?? card.value}
+                        className="h-11 bg-card px-4 font-mono text-sm font-medium"
+                        onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                          handleValueChange(card, event.target.value)
+                        }
+                      />
+                    </label>
+
+                    <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+                      Format
+                    </span>
+                    <div className="mb-4 flex flex-wrap gap-2">
+                      {barcodeFormats.map(option => (
+                        <button
+                          key={option}
+                          onClick={() => onChange(card.id, { format: option })}
+                          className={`${pressable} rounded-full px-3.5 py-1.5 text-xs font-semibold ${
+                            card.format === option
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-card text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          {formatLabels[option]}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => handleRescan(card)}
+                      className={`${pressable} flex w-full items-center justify-center gap-2 rounded-4xl bg-foreground py-3 text-sm font-bold text-background`}
+                    >
+                      <CameraIcon className="size-4.5" />
+                      Rescan barcode
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setNumberOpen(true)}
+                    className={`${pressable} flex w-full items-center justify-between gap-3 rounded-xl bg-muted/60 px-4 py-3 text-left hover:bg-muted`}
+                  >
+                    <span className="min-w-0">
+                      <span className="block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+                        {formatLabels[card.format]}
+                      </span>
+                      <span className="mt-0.5 block truncate font-mono text-sm font-medium tracking-widest text-muted-foreground">
+                        {card.value}
+                      </span>
+                    </span>
+                    <span className="flex shrink-0 items-center gap-1.5 text-xs font-semibold text-primary">
+                      <PencilIcon className="size-3.5" />
+                      Rescan or edit
+                    </span>
+                  </button>
+                )}
               </div>
 
               <div className="px-5 pt-4 pb-8">
