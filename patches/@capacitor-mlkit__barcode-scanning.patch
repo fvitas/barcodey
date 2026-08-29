@@ -1,0 +1,35 @@
+diff --git a/ios/Plugin/BarcodeScannerView.swift b/ios/Plugin/BarcodeScannerView.swift
+index e33df52ba5fa0f5dc4b7959e3ecbc1ba310c48a6..47f687f96ec3dc3162138302e61497d1f0566a8a 100644
+--- a/ios/Plugin/BarcodeScannerView.swift
++++ b/ios/Plugin/BarcodeScannerView.swift
+@@ -29,6 +29,7 @@ public protocol BarcodeScannerViewDelegate {
+     private var torchButton: UIButton?
+     private var detectionAreaView: UIView?
+     private var detectionAreaViewFrame: CGRect?
++    private let captureSessionQueue = DispatchQueue(label: "com.google.mlkit.visiondetector.CaptureSessionQueue")
+ 
+     init(implementation: BarcodeScanner, settings: ScanSettings) throws {
+         self.implementation = implementation
+@@ -43,7 +44,6 @@ public protocol BarcodeScannerViewDelegate {
+         // creates a serial DispatchQueue, which ensures operations are executed in a First In, First Out
+         // (FIFO) order, meaning tasks are completed one at a time in the exact order they were added to
+         // the queue.
+-        let captureSessionQueue = DispatchQueue(label: "com.google.mlkit.visiondetector.CaptureSessionQueue")
+         var setupError: Error?
+ 
+         let captureSession = AVCaptureSession()
+@@ -151,7 +151,13 @@ public protocol BarcodeScannerViewDelegate {
+         self.removeTorchButton()
+         self.removeCancelButton()
+         self.removeVideoPreviewLayer()
+-        self.captureSession?.stopRunning()
++        // stopRunning blocks for up to a second; on the main thread it freezes
++        // the scanner's last frame over the app while the view is dismissed
++        if let captureSession = self.captureSession {
++            captureSessionQueue.async {
++                captureSession.stopRunning()
++            }
++        }
+         self.captureSession = nil
+         self.barcodeScannerInstance = nil
+     }

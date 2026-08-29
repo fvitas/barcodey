@@ -78,7 +78,7 @@ DEPENDENCIES:
   - "CapacitorFilesystem (from `../../node_modules/.pnpm/@capacitor+filesystem@8.1.2_@capacitor+core@8.5.0/node_modules/@capacitor/filesystem`)"
   - "CapacitorHaptics (from `../../node_modules/.pnpm/@capacitor+haptics@8.0.2_@capacitor+core@8.5.0/node_modules/@capacitor/haptics`)"
   - "CapacitorLocalNotifications (from `../../node_modules/.pnpm/@capacitor+local-notifications@8.2.1_@capacitor+core@8.5.0/node_modules/@capacitor/local-notifications`)"
-  - "CapacitorMlkitBarcodeScanning (from `../../node_modules/.pnpm/@capacitor-mlkit+barcode-scanning@8.1.0_@capacitor+core@8.5.0/node_modules/@capacitor-mlkit/barcode-scanning`)"
+  - "CapacitorMlkitBarcodeScanning (from `../../node_modules/.pnpm/@capacitor-mlkit+barcode-scanning@8.1.0_patch_hash=1495dcb52dbc25e293ba92d4532f25f643bd_e823e18adbf501eac537a05308013638/node_modules/@capacitor-mlkit/barcode-scanning`)"
   - "CapacitorPreferences (from `../../node_modules/.pnpm/@capacitor+preferences@8.0.1_@capacitor+core@8.5.0/node_modules/@capacitor/preferences`)"
   - "CapacitorShare (from `../../node_modules/.pnpm/@capacitor+share@8.0.1_@capacitor+core@8.5.0/node_modules/@capacitor/share`)"
   - "CapawesomeCapacitorAppShortcuts (from `../../node_modules/.pnpm/@capawesome+capacitor-app-shortcuts@8.0.1_@capacitor+core@8.5.0/node_modules/@capawesome/capacitor-app-shortcuts`)"
@@ -114,7 +114,7 @@ EXTERNAL SOURCES:
   CapacitorLocalNotifications:
     :path: "../../node_modules/.pnpm/@capacitor+local-notifications@8.2.1_@capacitor+core@8.5.0/node_modules/@capacitor/local-notifications"
   CapacitorMlkitBarcodeScanning:
-    :path: "../../node_modules/.pnpm/@capacitor-mlkit+barcode-scanning@8.1.0_@capacitor+core@8.5.0/node_modules/@capacitor-mlkit/barcode-scanning"
+    :path: "../../node_modules/.pnpm/@capacitor-mlkit+barcode-scanning@8.1.0_patch_hash=1495dcb52dbc25e293ba92d4532f25f643bd_e823e18adbf501eac537a05308013638/node_modules/@capacitor-mlkit/barcode-scanning"
   CapacitorPreferences:
     :path: "../../node_modules/.pnpm/@capacitor+preferences@8.0.1_@capacitor+core@8.5.0/node_modules/@capacitor/preferences"
   CapacitorShare:
@@ -147,6 +147,6 @@ SPEC CHECKSUMS:
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
 
-PODFILE CHECKSUM: 0ac60127f267cf73ca9658effcc769ae0984f3d8
+PODFILE CHECKSUM: eeed00c881405ec5e3c9c0be4854bde31c120c66
 
 COCOAPODS: 1.17.0
