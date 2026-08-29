@@ -1,6 +1,6 @@
 import { CameraIcon, IdCardIcon } from 'lucide-react'
 import { motion } from 'motion/react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Drawer } from 'vaul'
 import { BrandField } from '@/components/BrandField'
@@ -104,6 +104,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
   const [warnedKey, setWarnedKey] = useState<string | null>(null)
   const coverPath = cover !== undefined ? photos[cover.side] : undefined
   const coverSrc = usePhotoSrc(coverPath)
+  const nameInputRef = useRef<HTMLInputElement>(null)
 
   const canSubmit = name.trim() !== '' && (mode === 'manual' ? value.trim() !== '' : scanResult !== null)
 
@@ -157,8 +158,14 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
   }
 
   function handleDetected(result: ScanResult) {
-    haptic(findDuplicateCard(cards, result.value, result.format) !== undefined ? 'warning' : 'success')
+    const duplicate = findDuplicateCard(cards, result.value, result.format)
+    haptic(duplicate !== undefined ? 'warning' : 'success')
     setScanResult(result)
+    // double rAF: radix refocuses the drawer when the scan button unmounts, so focus one frame later
+    // skipped for duplicates — the keyboard would cover the banner that needs the eyes first
+    if (duplicate === undefined) {
+      requestAnimationFrame(() => requestAnimationFrame(() => nameInputRef.current?.focus()))
+    }
   }
 
   function handleNativeScan() {
@@ -348,6 +355,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                     Name
                   </span>
                   <Input
+                    ref={nameInputRef}
                     value={name}
                     placeholder="e.g. Lidl Plus"
                     autoCapitalize="sentences"
