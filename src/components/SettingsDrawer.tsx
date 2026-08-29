@@ -40,6 +40,7 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
   const [pendingImport, setPendingImport] = useState<Wallet | null>(null)
   const [transferOpen, setTransferOpen] = useState(false)
   const [importError, setImportError] = useState(false)
+  const [imported, setImported] = useState<Wallet | null>(null)
   const [remindersDenied, setRemindersDenied] = useState(false)
 
   const lockAvailable = method !== null && method !== 'none'
@@ -94,6 +95,7 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
         return
       }
       setImportError(false)
+      setImported(null)
       setPendingImport(parsed.data)
     })
   }
@@ -101,8 +103,8 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
   function handleConfirmImport() {
     if (pendingImport === null) return
     replaceWallet(pendingImport)
+    setImported(pendingImport)
     setPendingImport(null)
-    onClose()
   }
 
   return (
@@ -111,6 +113,7 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
       onOpenChange={isOpen => {
         if (isOpen) return
         setImportError(false)
+        setImported(null)
         onClose()
       }}
     >
@@ -236,6 +239,12 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
             {importError && (
               <p className="mt-2 text-center text-xs font-medium text-destructive">
                 Not a valid Barcodey backup file
+              </p>
+            )}
+            {imported !== null && (
+              <p className="mt-2 text-center text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                Imported {countLabel(imported.cards.length, 'card')}, {countLabel(imported.folders.length, 'folder')}{' '}
+                and {countLabel(imported.documents.length, 'document')}
               </p>
             )}
             <input
