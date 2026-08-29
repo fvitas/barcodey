@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { exportBackup } from '@/lib/backup'
 import { authenticateForDocuments, lockMethodLabels } from '@/lib/biometric'
 import { newIssueUrl, type IssueTemplate } from '@/lib/feedback'
+import { setHapticsEnabled } from '@/lib/haptics'
 import { viewModes, walletSchema, type Wallet } from '@/lib/model'
 import { requestNotificationPermission } from '@/lib/notifications'
 import { pressable } from '@/lib/utils'
@@ -62,6 +63,12 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
       setRemindersDenied(!granted)
       if (granted) update({ expiryReminders: true })
     })
+  }
+
+  function handleHapticsToggle(checked: boolean) {
+    // flip the flag before the switch's own haptic fires: on buzzes, off ends silent
+    setHapticsEnabled(checked)
+    update({ haptics: checked })
   }
 
   function handleExport() {
@@ -188,6 +195,19 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
                 onCheckedChange={handleRemindersToggle}
                 aria-label="Expiry notifications"
               />
+            </div>
+
+            <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
+              Feel
+            </span>
+            <div className="mb-5 flex items-center justify-between rounded-xl bg-muted/60 px-4 py-3">
+              <div className="min-w-0 pr-3">
+                <p className="text-sm font-semibold text-foreground">Haptics</p>
+                <p className="mt-0.5 text-xs font-medium text-muted-foreground/80">
+                  Gentle taps on swipes, scans and deletes
+                </p>
+              </div>
+              <Switch checked={state.haptics} onCheckedChange={handleHapticsToggle} aria-label="Haptics" />
             </div>
 
             <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">

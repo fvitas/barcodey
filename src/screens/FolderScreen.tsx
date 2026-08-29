@@ -9,6 +9,7 @@ import { WallPass } from '@/components/WallPass'
 import { Input } from '@/components/ui/input'
 import { useBrightnessBoost } from '@/hooks/use-brightness-boost'
 import { cardFace } from '@/lib/color'
+import { haptic } from '@/lib/haptics'
 import type { Card, Folder } from '@/lib/model'
 import { pressable } from '@/lib/utils'
 import { useUiState } from '@/state/ui-state-context'
@@ -147,10 +148,12 @@ export function FolderScreen() {
   const editingCard = cards.find(card => card.id === editingId) ?? null
 
   function handleToggle(id: string) {
+    haptic('light')
     update({ expandedCardId: state.expandedCardId === id ? null : id })
   }
 
   function handleDelete(id: string) {
+    haptic('medium')
     removeCard(id)
     if (state.expandedCardId === id) {
       update({ expandedCardId: null })
@@ -160,12 +163,14 @@ export function FolderScreen() {
   function handleToggleFavorite(id: string) {
     const card = cards.find(current => current.id === id)
     if (card !== undefined) {
+      haptic('light')
       updateCard(id, { favorite: !card.favorite })
     }
   }
 
   function handleDeleteFolder() {
     if (folder !== null) {
+      haptic('medium')
       removeFolder(folder.id)
     }
     navigate('/folders', { replace: true })

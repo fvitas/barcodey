@@ -6,6 +6,7 @@ import { DocPass, docFaceGradient } from '@/components/DocPass'
 import { AddDocumentDrawer, EditDocumentDrawer } from '@/components/DocumentDrawer'
 import { useBrightnessBoost } from '@/hooks/use-brightness-boost'
 import { lockMethodLabels, type LockMethod } from '@/lib/biometric'
+import { haptic } from '@/lib/haptics'
 import { pressable } from '@/lib/utils'
 import { useDocumentsLock } from '@/state/documents-lock-context'
 import { useWallet } from '@/state/wallet-context'
@@ -54,10 +55,12 @@ export function DocumentsScreen() {
   useBrightnessBoost(unlocked && expandedId !== null)
 
   function handleToggle(id: string) {
+    haptic('light')
     setExpandedId(current => (current === id ? null : id))
   }
 
   function handleDelete(id: string) {
+    haptic('medium')
     removeDocument(id)
     if (expandedId === id) setExpandedId(null)
   }
@@ -116,6 +119,7 @@ export function DocumentsScreen() {
             open={addOpen}
             onClose={() => setAddOpen(false)}
             onAdd={doc => {
+              haptic('success')
               addDocument(doc)
               setExpandedId(doc.id)
               setAddOpen(false)

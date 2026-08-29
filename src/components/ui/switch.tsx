@@ -1,11 +1,13 @@
 import * as React from "react"
 import { Switch as SwitchPrimitive } from "radix-ui"
 
+import { haptic } from "@/lib/haptics"
 import { cn } from "@/lib/utils"
 
 function Switch({
   className,
   size = "default",
+  onCheckedChange,
   ...props
 }: React.ComponentProps<typeof SwitchPrimitive.Root> & {
   size?: "sm" | "default"
@@ -14,6 +16,11 @@ function Switch({
     <SwitchPrimitive.Root
       data-slot="switch"
       data-size={size}
+      // haptic after the handler: the haptics setting flips its flag first, so off ends silent
+      onCheckedChange={(checked: boolean) => {
+        onCheckedChange?.(checked)
+        haptic("light")
+      }}
       className={cn(
         "peer group/switch relative inline-flex shrink-0 items-center rounded-full transition-all outline-none after:absolute after:-inset-x-3 after:-inset-y-2 focus-visible:ring-3 focus-visible:ring-ring/30 aria-invalid:ring-3 aria-invalid:ring-destructive/20 shadow-[inset_0_1px_3px_rgba(15,23,42,0.18)] data-[size=default]:h-[26px] data-[size=default]:w-[46px] data-[size=sm]:h-4 data-[size=sm]:w-7 dark:aria-invalid:ring-destructive/40 data-checked:bg-primary data-checked:shadow-[inset_0_1px_3px_rgba(0,0,0,0.22)] data-unchecked:bg-input data-disabled:cursor-not-allowed data-disabled:opacity-50",
         className

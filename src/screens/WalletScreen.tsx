@@ -42,6 +42,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useBrightnessBoost } from '@/hooks/use-brightness-boost'
+import { haptic } from '@/lib/haptics'
 import { sortCards, type Card, type SortMode, type ViewMode } from '@/lib/model'
 import { createSampleCard } from '@/lib/sample-card'
 import { pressable } from '@/lib/utils'
@@ -177,6 +178,7 @@ export function WalletScreen() {
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
     if (over === null || active.id === over.id) return
+    haptic('light')
     moveCard(String(active.id), String(over.id))
   }
 
@@ -185,10 +187,12 @@ export function WalletScreen() {
   }
 
   function handleToggle(id: string) {
+    haptic('light')
     update({ expandedCardId: state.expandedCardId === id ? null : id })
   }
 
   function handleDelete(id: string) {
+    haptic('medium')
     removeCard(id)
     if (state.expandedCardId === id) {
       update({ expandedCardId: null })
@@ -207,6 +211,7 @@ export function WalletScreen() {
   function handleToggleFavorite(id: string) {
     const card = cards.find(current => current.id === id)
     if (card !== undefined) {
+      haptic('light')
       updateCard(id, { favorite: !card.favorite })
     }
   }
@@ -332,6 +337,7 @@ export function WalletScreen() {
           <DndContext
             sensors={state.view === 'grid' ? gridSensors : listSensors}
             collisionDetection={closestCenter}
+            onDragStart={() => haptic('light')}
             onDragEnd={handleDragEnd}
           >
             <SortableContext

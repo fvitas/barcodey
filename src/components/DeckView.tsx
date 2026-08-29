@@ -7,6 +7,7 @@ import { ExpiryPill } from '@/components/ExpiryPill'
 import { usePhotoSrc } from '@/components/PhotoField'
 import { PassDetails } from '@/components/WallPass'
 import { cardFace } from '@/lib/color'
+import { haptic } from '@/lib/haptics'
 import { formatLabels, type Card } from '@/lib/model'
 
 type DeckViewProps = {
@@ -341,6 +342,7 @@ export function DeckView({
       layout(false) // already at the back: reordering is a no-op, snap home instead of sticking mid-fling
       return
     }
+    haptic('light')
     const next = previous.filter(id => id !== cardId)
     next.push(cardId)
     if (index < front) p.current -= spacing // removing a passed card shifts everyone; keep the front where it is
@@ -383,7 +385,7 @@ export function DeckView({
     el.style.transform = `translateY(${active.liftY}px) scale(1.04)`
     el.style.zIndex = '29'
     el.style.boxShadow = '0 24px 48px rgba(15, 23, 42, 0.35)'
-    navigator.vibrate?.(10)
+    haptic('light')
     liftRaf.current = requestAnimationFrame(liftTick)
   }
 
@@ -530,6 +532,7 @@ export function DeckView({
         snap(0) // edge auto-scroll can leave the conveyor between slots
         return
       }
+      haptic('light')
       p.current = clampSnap(p.current)
       const next = previous.filter(id => id !== active.cardId)
       next.splice(target, 0, active.cardId)

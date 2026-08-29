@@ -5,6 +5,7 @@ import { AddDrawer } from '@/components/AddDrawer'
 import { AppNav } from '@/components/AppNav'
 import { warmBarcodeRenderer } from '@/hooks/use-barcode-svg'
 import { useExpiryReminders } from '@/hooks/use-expiry-reminders'
+import { installTapHaptics, setHapticsEnabled } from '@/lib/haptics'
 import type { Card } from '@/lib/model'
 import { onNotificationTap, type NotificationTap } from '@/lib/notifications'
 import { onShortcutClick, shortcutItems, syncAppShortcuts } from '@/lib/shortcuts'
@@ -54,6 +55,12 @@ function AppShell() {
     if (!wallet.ready || !ready) return
     void syncAppShortcuts(shortcutItems(wallet.cards, state.sort))
   }, [wallet.ready, ready, wallet.cards, state.sort])
+
+  useEffect(() => {
+    if (ready) setHapticsEnabled(state.haptics)
+  }, [ready, state.haptics])
+
+  useEffect(() => installTapHaptics(), [])
 
   // continuity: reopen where the app was left, once, from the default entry only
   useEffect(() => {

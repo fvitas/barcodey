@@ -4,6 +4,7 @@ import { CameraScanner } from '@/components/CameraScanner'
 import { Switch } from '@/components/ui/switch'
 import { warmBarcodeRenderer } from '@/hooks/use-barcode-svg'
 import { useBrightnessBoost } from '@/hooks/use-brightness-boost'
+import { haptic } from '@/lib/haptics'
 import type { Wallet } from '@/lib/model'
 import type { ScanResult } from '@/lib/scanner'
 import {
@@ -142,6 +143,7 @@ function ReceiveScreen({ open, onClose, onDone, wallet }: ReceiveScreenProps) {
         setDecodeError(true)
         return
       }
+      haptic('success')
       setPending(mergeWallet(wallet, incoming))
     })
   }

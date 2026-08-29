@@ -12,6 +12,7 @@ import { ExpiryDateField } from '@/components/ExpiryDateField'
 import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { haptic } from '@/lib/haptics'
 import { capitalizeFirst, pressable } from '@/lib/utils'
 import {
   barcodeFormats,
@@ -156,9 +157,14 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
     onClose()
   }
 
+  function handleDetected(result: ScanResult) {
+    haptic(findDuplicateCard(cards, result.value, result.format) !== undefined ? 'warning' : 'success')
+    setScanResult(result)
+  }
+
   function handleNativeScan() {
     void scanWithNativeScanner()
-      .then(result => result !== null && setScanResult(result))
+      .then(result => result !== null && handleDetected(result))
       .catch(() => {})
   }
 
@@ -173,9 +179,11 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
     if (!canSubmit) return
     // manual dupes surface at submit; scanned ones already showed the banner at detection
     if (mode === 'manual' && warnedKey !== manualKey && findDuplicateCard(cards, value.trim(), format) !== undefined) {
+      haptic('warning')
       setWarnedKey(manualKey)
       return
     }
+    haptic('success')
     onAdd({
       id: crypto.randomUUID(),
       name: name.trim(),
@@ -224,7 +232,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5">
             {mode === 'scan' && scanResult === null && (
               <div className="mb-5">
-                {open && !hasNativeScanner && <CameraScanner onDetected={setScanResult} />}
+                {open && !hasNativeScanner && <CameraScanner onDetected={handleDetected} />}
 
                 {hasNativeScanner && (
                   <button
@@ -246,7 +254,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
 
             {mode === 'image' && scanResult === null && (
               <div className="mb-5">
-                <ScanImagePicker onDetected={setScanResult} />
+                <ScanImagePicker onDetected={handleDetected} />
                 <p className="mt-3 text-center text-xs font-medium text-muted-foreground/80">
                   Pick a screenshot or photo with a barcode
                 </p>

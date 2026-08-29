@@ -1,6 +1,7 @@
 import { motion } from 'motion/react'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
+import { haptic } from '@/lib/haptics'
 import { squareFormats, type BarcodeFormat } from '@/lib/model'
 
 type BarcodeFullscreenProps = {
@@ -19,12 +20,19 @@ export function BarcodeFullscreen({ name, value, format, svg, onClose }: Barcode
     [svg, square],
   )
 
+  useEffect(() => {
+    haptic('medium')
+  }, [])
+
   return createPortal(
     <motion.button
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      onClick={onClose}
+      onClick={() => {
+        haptic('light')
+        onClose()
+      }}
       aria-label="Close barcode"
       className="fixed inset-0 z-100 flex flex-col items-center justify-center bg-white p-8"
     >
