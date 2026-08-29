@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   '@capacitor-mlkit/barcode-scanning':
-    hash: c373ff3d38e66d13212bdacba2ef6a44765f43eaefda36a5c6db47bf0d5d0069
+    hash: 0ed430e879d395aab624243eb3daeab73707af7086877ea383cc760ef7e37ffc
     path: patches/@capacitor-mlkit__barcode-scanning.patch
 
 importers:
@@ -24,7 +24,7 @@ importers:
         version: 8.0.0(@capacitor/core@8.5.0)
       '@capacitor-mlkit/barcode-scanning':
         specifier: ^8.1.0
-        version: 8.1.0(patch_hash=c373ff3d38e66d13212bdacba2ef6a44765f43eaefda36a5c6db47bf0d5d0069)(@capacitor/core@8.5.0)
+        version: 8.1.0(patch_hash=0ed430e879d395aab624243eb3daeab73707af7086877ea383cc760ef7e37ffc)(@capacitor/core@8.5.0)
       '@capacitor/android':
         specifier: ^8.5.0
         version: 8.5.0(@capacitor/core@8.5.0)
@@ -3936,7 +3936,7 @@ snapshots:
     dependencies:
       '@capacitor/core': 8.5.0
 
-  '@capacitor-mlkit/barcode-scanning@8.1.0(patch_hash=c373ff3d38e66d13212bdacba2ef6a44765f43eaefda36a5c6db47bf0d5d0069)(@capacitor/core@8.5.0)':
+  '@capacitor-mlkit/barcode-scanning@8.1.0(patch_hash=0ed430e879d395aab624243eb3daeab73707af7086877ea383cc760ef7e37ffc)(@capacitor/core@8.5.0)':
     dependencies:
       '@capacitor/core': 8.5.0
 

@@ -1,16 +1,26 @@
 diff --git a/ios/Plugin/BarcodeScannerView.swift b/ios/Plugin/BarcodeScannerView.swift
-index e33df52ba5fa0f5dc4b7959e3ecbc1ba310c48a6..908dae9ed4e65491ce0a0db8b3de390823cf28e9 100644
+index e33df52ba5fa0f5dc4b7959e3ecbc1ba310c48a6..9da6df7ebf4cbbb42af9335e9dc818b9701db479 100644
 --- a/ios/Plugin/BarcodeScannerView.swift
 +++ b/ios/Plugin/BarcodeScannerView.swift
-@@ -29,6 +29,7 @@ public protocol BarcodeScannerViewDelegate {
+@@ -29,6 +29,11 @@ public protocol BarcodeScannerViewDelegate {
      private var torchButton: UIButton?
      private var detectionAreaView: UIView?
      private var detectionAreaViewFrame: CGRect?
 +    private let captureSessionQueue = DispatchQueue(label: "com.google.mlkit.visiondetector.CaptureSessionQueue")
++    // main thread only; gates the fade-in of preview + overlay on the first frame
++    private var isStreamRevealed = false
++    // video output queue only; ensures a single reveal dispatch
++    private var didReportFirstFrame = false
  
      init(implementation: BarcodeScanner, settings: ScanSettings) throws {
          self.implementation = implementation
-@@ -43,7 +44,6 @@ public protocol BarcodeScannerViewDelegate {
+@@ -40,10 +45,12 @@ public protocol BarcodeScannerViewDelegate {
+         // This is necessary for the view to resize when the device orientation changes
+         super.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+ 
++        // black backdrop while the session spins up; the stream and overlay fade in together
++        super.backgroundColor = .black
++
          // creates a serial DispatchQueue, which ensures operations are executed in a First In, First Out
          // (FIFO) order, meaning tasks are completed one at a time in the exact order they were added to
          // the queue.
@@ -18,7 +28,7 @@ index e33df52ba5fa0f5dc4b7959e3ecbc1ba310c48a6..908dae9ed4e65491ce0a0db8b3de3908
          var setupError: Error?
  
          let captureSession = AVCaptureSession()
-@@ -55,10 +55,9 @@ public protocol BarcodeScannerViewDelegate {
+@@ -55,10 +62,9 @@ public protocol BarcodeScannerViewDelegate {
          // block
          captureSessionQueue.sync {
              do {
@@ -32,7 +42,19 @@ index e33df52ba5fa0f5dc4b7959e3ecbc1ba310c48a6..908dae9ed4e65491ce0a0db8b3de3908
                  guard let captureDevice = captureDevice else {
                      throw RuntimeError(implementation.plugin.errorNoCaptureDeviceAvailable)
                  }
-@@ -151,7 +150,13 @@ public protocol BarcodeScannerViewDelegate {
+@@ -139,6 +145,11 @@ public protocol BarcodeScannerViewDelegate {
+                     self.addTorchButton()
+                 }
+             }
++
++            // failsafe: if frames never arrive, still reveal the cancel button
++            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
++                self?.revealStream()
++            }
+         }
+     }
+ 
+@@ -151,7 +162,13 @@ public protocol BarcodeScannerViewDelegate {
          self.removeTorchButton()
          self.removeCancelButton()
          self.removeVideoPreviewLayer()
@@ -47,7 +69,20 @@ index e33df52ba5fa0f5dc4b7959e3ecbc1ba310c48a6..908dae9ed4e65491ce0a0db8b3de3908
          self.captureSession = nil
          self.barcodeScannerInstance = nil
      }
-@@ -219,11 +224,6 @@ public protocol BarcodeScannerViewDelegate {
+@@ -178,6 +195,12 @@ public protocol BarcodeScannerViewDelegate {
+     }
+ 
+     public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
++        if !didReportFirstFrame {
++            didReportFirstFrame = true
++            DispatchQueue.main.async {
++                self.revealStream()
++            }
++        }
+         guard let barcodeScannerInstance = self.barcodeScannerInstance else {
+             return
+         }
+@@ -219,11 +242,6 @@ public protocol BarcodeScannerViewDelegate {
          do {
              try device.lockForConfiguration()
  
@@ -59,7 +94,34 @@ index e33df52ba5fa0f5dc4b7959e3ecbc1ba310c48a6..908dae9ed4e65491ce0a0db8b3de3908
              // Set focus mode
              if device.isFocusModeSupported(.continuousAutoFocus) {
                  device.focusMode = .continuousAutoFocus
-@@ -288,21 +288,16 @@ public protocol BarcodeScannerViewDelegate {
+@@ -278,32 +296,45 @@ public protocol BarcodeScannerViewDelegate {
+     private func setVideoPreviewLayer(_ videoPreviewLayer: AVCaptureVideoPreviewLayer) {
+         videoPreviewLayer.frame = self.bounds
+         videoPreviewLayer.videoGravity = .resizeAspectFill
++        videoPreviewLayer.opacity = 0
+         self.layer.addSublayer(videoPreviewLayer)
+         self.videoPreviewLayer = videoPreviewLayer
+     }
+ 
++    private func revealStream() {
++        if isStreamRevealed {
++            return
++        }
++        isStreamRevealed = true
++        CATransaction.begin()
++        CATransaction.setAnimationDuration(0.25)
++        self.videoPreviewLayer?.opacity = 1
++        CATransaction.commit()
++        UIView.animate(withDuration: 0.25) {
++            self.cancelButton?.alpha = 1
++            self.torchButton?.alpha = 1
++            self.detectionAreaView?.alpha = 1
++        }
++    }
++
+     private func removeVideoPreviewLayer() {
+         self.videoPreviewLayer?.removeFromSuperlayer()
+         self.videoPreviewLayer = nil
      }
  
      private func addCancelButton() {
@@ -83,9 +145,19 @@ index e33df52ba5fa0f5dc4b7959e3ecbc1ba310c48a6..908dae9ed4e65491ce0a0db8b3de3908
 -        button.imageEdgeInsets = UIEdgeInsets(top: 15, left: 15, bottom: 15, right: 15)
 +        button.imageEdgeInsets = UIEdgeInsets(top: 18, left: 18, bottom: 18, right: 18)
          button.addTarget(self, action: #selector(onCancel), for: .touchUpInside)
++        button.alpha = isStreamRevealed ? 1 : 0
          self.addSubview(button)
          self.cancelButton = button
-@@ -334,11 +329,11 @@ public protocol BarcodeScannerViewDelegate {
+     }
+@@ -324,6 +355,7 @@ public protocol BarcodeScannerViewDelegate {
+         button.contentHorizontalAlignment = .fill
+         button.imageEdgeInsets = UIEdgeInsets(top: 15, left: 20, bottom: 15, right: 20)
+         button.addTarget(self, action: #selector(onTorchToggle), for: .touchUpInside)
++        button.alpha = isStreamRevealed ? 1 : 0
+         self.addSubview(button)
+         self.torchButton = button
+     }
+@@ -334,15 +366,16 @@ public protocol BarcodeScannerViewDelegate {
      }
  
      private func addDetectionAreaView() {
@@ -102,3 +174,28 @@ index e33df52ba5fa0f5dc4b7959e3ecbc1ba310c48a6..908dae9ed4e65491ce0a0db8b3de3908
          view.backgroundColor = UIColor.clear
          view.layer.cornerRadius = 12
          view.layer.borderWidth = 4
+         view.layer.borderColor = UIColor.white.cgColor
++        view.alpha = isStreamRevealed ? 1 : 0
+         self.addSubview(view)
+         self.detectionAreaView = view
+         self.detectionAreaViewFrame = view.frame
+@@ -384,10 +417,19 @@ public protocol BarcodeScannerViewDelegate {
+     }
+ 
+     private func onBarcodesDetected(barcodes: [Barcode], imageSize: CGSize, videoOrientation: AVCaptureVideoOrientation?) {
++        // single-shot scan closes after this; hide everything at once instead of
++        // letting the teardown trickle through the js bridge round-trip
++        if settings.showUIElements {
++            DispatchQueue.main.async {
++                self.isHidden = true
++            }
++        }
+         self.delegate?.onBarcodesDetected(barcodes: barcodes, imageSize: imageSize, videoOrientation: videoOrientation)
+     }
+ 
+     @objc private func onCancel() {
++        // reveal the app in the same frame as the tap; removal follows asynchronously
++        self.isHidden = true
+         self.delegate?.onCancel()
+     }
+ 
