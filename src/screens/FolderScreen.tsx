@@ -12,7 +12,7 @@ import { useBrightnessBoost } from '@/hooks/use-brightness-boost'
 import { cardFace } from '@/lib/color'
 import { haptic } from '@/lib/haptics'
 import type { Card, Folder } from '@/lib/model'
-import { pressable } from '@/lib/utils'
+import { focusOnMount, pressable } from '@/lib/utils'
 import { useUiState } from '@/state/ui-state-context'
 import { useWallet } from '@/state/wallet-context'
 
@@ -124,6 +124,7 @@ function FolderEditDrawer({ folder, open, onClose, onRename, onDelete }: FolderE
                 Name
               </span>
               <Input
+                ref={focusOnMount}
                 value={nameDraft ?? folder.name}
                 className="h-11 px-4 text-sm font-semibold"
                 onChange={handleNameChange}

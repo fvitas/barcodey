@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { userCountry } from '@/lib/brands'
 import { countryName, isCountryCode } from '@/lib/countries'
 import { suggestBrandUrl } from '@/lib/feedback'
-import { pressable } from '@/lib/utils'
+import { focusOnMount, pressable } from '@/lib/utils'
 
 type SuggestBrandDrawerProps = {
   open: boolean
@@ -45,6 +45,7 @@ export function SuggestBrandDrawer({ open, initialName, onClose }: SuggestBrandD
                 Brand name
               </span>
               <Input
+                ref={focusOnMount}
                 value={name}
                 placeholder="e.g. Maxi"
                 className="h-11 px-4 text-sm font-semibold"

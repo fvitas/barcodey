@@ -6,7 +6,7 @@ import { SettingsDrawer } from '@/components/SettingsDrawer'
 import { Input } from '@/components/ui/input'
 import { cardFace } from '@/lib/color'
 import type { Card } from '@/lib/model'
-import { pressable } from '@/lib/utils'
+import { focusOnMount, pressable } from '@/lib/utils'
 import { useWallet } from '@/state/wallet-context'
 
 const fanRotations = [-10, 6, 0]
@@ -66,6 +66,7 @@ function NewFolderDrawer({ open, onClose, onCreate }: NewFolderDrawerProps) {
             <Drawer.Title className="mb-5 text-lg font-extrabold text-foreground">New folder</Drawer.Title>
 
             <Input
+              ref={focusOnMount}
               value={name}
               placeholder="e.g. Groceries"
               className="mb-5 h-11 px-4 text-sm font-semibold"
