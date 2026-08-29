@@ -571,6 +571,7 @@ export function DeckView({
 
   // stage size drives all conveyor math; measured synchronously — waiting for the
   // observer's first async delivery paints a frame of unplaced cards on remounts
+  // keyed on stage presence: an empty deck renders null, so a mount-only run misses the stage
   useLayoutEffect(() => {
     const stage = stageRef.current
     if (stage === null) return
@@ -584,7 +585,7 @@ export function DeckView({
     })
     observer.observe(stage)
     return () => observer.disconnect()
-  }, [])
+  }, [count > 0])
 
   useEffect(() => {
     orderRef.current = order
