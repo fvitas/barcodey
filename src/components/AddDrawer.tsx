@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Drawer } from 'vaul'
 import { BrandField } from '@/components/BrandField'
-import { CameraScanner } from '@/components/CameraScanner'
 import { ColorRow } from '@/components/ColorRow'
 import { ScanImagePicker } from '@/components/ScanImagePicker'
 import { CoverAdjust } from '@/components/CoverAdjust'
@@ -27,7 +26,7 @@ import {
 } from '@/lib/model'
 import { extractPhotoColor } from '@/lib/photo-color'
 import { bakePhotoRotations, deleteCardPhotos } from '@/lib/photos'
-import { hasNativeScanner, scanWithNativeScanner, type ScanResult } from '@/lib/scanner'
+import { scanWithNativeScanner, type ScanResult } from '@/lib/scanner'
 import { useUiState } from '@/state/ui-state-context'
 import { useWallet } from '@/state/wallet-context'
 
@@ -231,25 +230,13 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
 
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5">
             {mode === 'scan' && scanResult === null && (
-              <div className="mb-5">
-                {open && !hasNativeScanner && <CameraScanner onDetected={handleDetected} />}
-
-                {hasNativeScanner && (
-                  <button
-                    onClick={handleNativeScan}
-                    className={`${pressable} flex w-full items-center justify-center gap-2 rounded-4xl bg-foreground py-3 text-sm font-bold text-background`}
-                  >
-                    <CameraIcon className="size-4.5" />
-                    Open scanner
-                  </button>
-                )}
-
-                {!hasNativeScanner && (
-                  <p className="text-center text-xs font-medium text-muted-foreground/80">
-                    Point the camera at a barcode — it detects automatically
-                  </p>
-                )}
-              </div>
+              <button
+                onClick={handleNativeScan}
+                className={`${pressable} mb-5 flex w-full items-center justify-center gap-2 rounded-4xl bg-foreground py-3 text-sm font-bold text-background`}
+              >
+                <CameraIcon className="size-4.5" />
+                Open scanner
+              </button>
             )}
 
             {mode === 'image' && scanResult === null && (

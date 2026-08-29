@@ -1,7 +1,6 @@
 import { CameraIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Drawer } from 'vaul'
-import { CameraScanner } from '@/components/CameraScanner'
 import { CoverAdjust } from '@/components/CoverAdjust'
 import { ExpiryDateField } from '@/components/ExpiryDateField'
 import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
@@ -10,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { formatLabels, type Doc, type PhotoSide } from '@/lib/model'
 import { bakePhotoRotations, deleteCardPhotos } from '@/lib/photos'
-import { hasNativeScanner, scanWithNativeScanner } from '@/lib/scanner'
+import { scanWithNativeScanner } from '@/lib/scanner'
 import { capitalizeFirst, pressable } from '@/lib/utils'
 
 type DocDraft = Pick<Doc, 'name' | 'photos' | 'cover' | 'number' | 'expiry' | 'barcode'>
@@ -25,7 +24,6 @@ type DocumentFieldsProps = {
 }
 
 function DocumentFields({ value, rotations, onPatch, onRotate }: DocumentFieldsProps) {
-  const [scanning, setScanning] = useState(false)
   const photoSides = (['front', 'back'] as const).filter(side => value.photos[side] !== undefined)
   // the pass face defaults to the first photo; an explicit cover picks side + framing
   const faceSide = value.cover?.side ?? photoSides[0]
@@ -40,13 +38,9 @@ function DocumentFields({ value, rotations, onPatch, onRotate }: DocumentFieldsP
   }
 
   function handleScan() {
-    if (hasNativeScanner) {
-      void scanWithNativeScanner()
-        .then(result => result !== null && onPatch({ barcode: result }))
-        .catch(() => {})
-      return
-    }
-    setScanning(true)
+    void scanWithNativeScanner()
+      .then(result => result !== null && onPatch({ barcode: result }))
+      .catch(() => {})
   }
 
   return (
@@ -143,21 +137,6 @@ function DocumentFields({ value, rotations, onPatch, onRotate }: DocumentFieldsP
             className={`${pressable} shrink-0 rounded-full px-3 py-1 text-xs font-semibold text-destructive`}
           >
             Remove
-          </button>
-        </div>
-      ) : scanning ? (
-        <div className="mb-6">
-          <CameraScanner
-            onDetected={result => {
-              onPatch({ barcode: result })
-              setScanning(false)
-            }}
-          />
-          <button
-            onClick={() => setScanning(false)}
-            className={`${pressable} w-full rounded-4xl py-2 text-xs font-semibold text-muted-foreground hover:text-foreground`}
-          >
-            Cancel
           </button>
         </div>
       ) : (

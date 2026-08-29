@@ -1,10 +1,7 @@
-import { Capacitor } from '@capacitor/core'
 import type { ReaderOptions } from 'zxing-wasm/reader'
 import type { BarcodeFormat } from '@/lib/model'
 
 export type ScanResult = { value: string; format: BarcodeFormat }
-
-export const hasNativeScanner = Capacitor.isNativePlatform()
 
 // zxing-wasm v3 format names have no hyphens ('EAN13', not v2's 'EAN-13')
 const zxingFormats: Record<string, BarcodeFormat> = {
