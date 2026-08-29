@@ -232,7 +232,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
             {mode === 'scan' && scanResult === null && (
               <button
                 onClick={handleNativeScan}
-                className={`${pressable} mb-5 flex w-full items-center justify-center gap-2 rounded-4xl bg-foreground py-3 text-sm font-bold text-background`}
+                className={`${pressable} mb-1 flex w-full items-center justify-center gap-2 rounded-4xl bg-foreground py-3 text-sm font-bold text-background`}
               >
                 <CameraIcon className="size-4.5" />
                 Open scanner
@@ -240,7 +240,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
             )}
 
             {mode === 'image' && scanResult === null && (
-              <div className="mb-5">
+              <div className="mb-1">
                 <ScanImagePicker onDetected={handleDetected} />
                 <p className="mt-3 text-center text-xs font-medium text-muted-foreground/80">
                   Pick a screenshot or photo with a barcode
