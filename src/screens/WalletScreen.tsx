@@ -225,7 +225,7 @@ export function WalletScreen() {
           </h1>
 
           <div className="flex gap-2">
-            {import.meta.env.DEV && (
+            {(import.meta.env.DEV || import.meta.env.VITE_DEBUG_TOOLS === '1') && (
               <>
                 <button
                   onClick={() => addCard(createSampleCard())}
