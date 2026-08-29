@@ -318,7 +318,14 @@ export function WalletScreen() {
       </header>
 
       {/* deck fills the space and scrolls internally; wall views scroll here, past the floating nav */}
-      <main className={`min-h-0 flex-1 px-5 ${state.view === 'deck' ? 'overflow-hidden' : 'overflow-y-auto pb-32'}`}>
+      {/* deck padding mirrors the nav's safe-area rise so bottomPad keeps clearing it */}
+      <main
+        className={`min-h-0 flex-1 px-5 ${
+          state.view === 'deck'
+            ? 'overflow-hidden pb-[max(0px,calc(env(safe-area-inset-bottom)-1rem))]'
+            : 'overflow-y-auto pb-32'
+        }`}
+      >
         {state.view === 'deck' ? (
           <DeckView
             cards={visibleCards}
