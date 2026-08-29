@@ -628,8 +628,16 @@ export function DeckView({
   useEffect(() => {
     if (firstResetSignal.current === resetSignal) return
     firstResetSignal.current = resetSignal
-    setOrder(cards.map(card => card.id))
-    animateP(0)
+    const next = cards.map(card => card.id)
+    if (next.join('|') === orderKey) {
+      animateP(0)
+      return
+    }
+    // animateP's rAF would keep repainting this render's pre-sort order over the new
+    // placement — jump home and let the orderKey effect glide every card to its slot
+    cancelAnimationFrame(raf.current)
+    p.current = 0
+    setOrder(next)
   }, [resetSignal, cards])
 
   // place new elements before the animated pass: arrivals below the screen, everything else at its slot
