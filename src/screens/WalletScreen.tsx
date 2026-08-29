@@ -162,7 +162,10 @@ export function WalletScreen() {
   const [settingsOpen, setSettingsOpen] = useState(false)
 
   const searching = query.trim().length > 0
-  const filteredCards = cards.filter(card => card.name.toLowerCase().includes(query.trim().toLowerCase()))
+  const needle = query.trim().toLowerCase()
+  const filteredCards = cards.filter(
+    card => card.name.toLowerCase().includes(needle) || card.value.toLowerCase().includes(needle),
+  )
   const visibleCards = sortCards(filteredCards, state.sort)
 
   const editingCard = cards.find(card => card.id === editingId) ?? null
