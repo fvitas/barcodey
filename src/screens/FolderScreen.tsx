@@ -86,9 +86,22 @@ type FolderEditDrawerProps = {
 
 function FolderEditDrawer({ folder, open, onClose, onRename, onDelete }: FolderEditDrawerProps) {
   const [confirmOpen, setConfirmOpen] = useState(false)
+  // name edits buffer here so an emptied field never persists; null mirrors folder.name
+  const [nameDraft, setNameDraft] = useState<string | null>(null)
+
+  function handleNameChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const name = event.target.value
+    setNameDraft(name)
+    if (name.trim() !== '') onRename(name)
+  }
+
+  function handleClose() {
+    setNameDraft(null)
+    onClose()
+  }
 
   return (
-    <Drawer.Root repositionInputs={false} open={open} onOpenChange={isOpen => !isOpen && onClose()}>
+    <Drawer.Root repositionInputs={false} open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
 
@@ -111,14 +124,14 @@ function FolderEditDrawer({ folder, open, onClose, onRename, onDelete }: FolderE
                 Name
               </span>
               <Input
-                value={folder.name}
+                value={nameDraft ?? folder.name}
                 className="h-11 px-4 text-sm font-semibold"
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) => onRename(event.target.value)}
+                onChange={handleNameChange}
               />
             </label>
 
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className={`${pressable} w-full rounded-4xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/80`}
             >
               Done

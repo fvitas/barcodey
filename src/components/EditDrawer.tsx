@@ -23,6 +23,8 @@ const coverOptions = ['none', 'front', 'back'] as const
 export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
   // pending quarter turns keyed by photo path — the one deferred edit: previewed live, baked on Done/close
   const [rotations, setRotations] = useState<Record<string, number>>({})
+  // name edits buffer here so an emptied field never persists; null mirrors card.name
+  const [nameDraft, setNameDraft] = useState<string | null>(null)
   const coverPath = card !== null && card.cover !== undefined ? card.photos[card.cover.side] : undefined
   const coverSrc = usePhotoSrc(coverPath)
 
@@ -45,7 +47,14 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
     }
   }
 
+  function handleNameChange(current: Card, value: string) {
+    const name = capitalizeFirst(value)
+    setNameDraft(name)
+    if (name.trim() !== '') onChange(current.id, { name })
+  }
+
   function handleClose() {
+    setNameDraft(null)
     if (card !== null && Object.keys(rotations).length > 0) {
       const { id, photos } = card
       const pending = rotations
@@ -76,11 +85,11 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
                     Name
                   </span>
                   <Input
-                    value={card.name}
+                    value={nameDraft ?? card.name}
                     autoCapitalize="sentences"
                     className="h-11 px-4 text-sm font-semibold"
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                      onChange(card.id, { name: capitalizeFirst(event.target.value) })
+                      handleNameChange(card, event.target.value)
                     }
                   />
                 </label>
@@ -92,7 +101,10 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
                   <BrandField
                     brandId={card.brandId}
                     brandBg={card.brandBg}
-                    onPick={brand => onChange(card.id, { brandId: brand.id, name: brand.name, color: brand.color })}
+                    onPick={brand => {
+                      setNameDraft(null)
+                      onChange(card.id, { brandId: brand.id, name: brand.name, color: brand.color })
+                    }}
                     onClear={() => onChange(card.id, { brandId: undefined })}
                     onToggleBg={show => onChange(card.id, { brandBg: show ? undefined : false })}
                   />
