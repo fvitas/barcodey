@@ -205,7 +205,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
   }
 
   return (
-    <Drawer.Root open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
+    <Drawer.Root repositionInputs={false} open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
 

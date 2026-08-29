@@ -85,7 +85,7 @@ type FolderEditDrawerProps = {
 
 function FolderEditDrawer({ folder, open, onClose, onRename, onDelete }: FolderEditDrawerProps) {
   return (
-    <Drawer.Root open={open} onOpenChange={isOpen => !isOpen && onClose()}>
+    <Drawer.Root repositionInputs={false} open={open} onOpenChange={isOpen => !isOpen && onClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
 

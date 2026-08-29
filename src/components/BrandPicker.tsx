@@ -130,7 +130,7 @@ export function BrandPicker({ open, onClose, onPick }: BrandPickerProps) {
   }
 
   return (
-    <Drawer.NestedRoot open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
+    <Drawer.NestedRoot repositionInputs={false} open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-[60] bg-black/40" />
 

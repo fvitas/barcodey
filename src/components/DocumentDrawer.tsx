@@ -218,7 +218,7 @@ export function AddDocumentDrawer({ open, onClose, onAdd }: AddDocumentDrawerPro
   }
 
   return (
-    <Drawer.Root open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
+    <Drawer.Root repositionInputs={false} open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
 
@@ -274,7 +274,7 @@ export function EditDocumentDrawer({ doc, onClose, onChange }: EditDocumentDrawe
   }
 
   return (
-    <Drawer.Root open={doc !== null} onOpenChange={open => !open && handleClose()}>
+    <Drawer.Root repositionInputs={false} open={doc !== null} onOpenChange={open => !open && handleClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
 

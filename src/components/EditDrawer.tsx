@@ -58,7 +58,7 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
   }
 
   return (
-    <Drawer.Root open={card !== null} onOpenChange={open => !open && handleClose()}>
+    <Drawer.Root repositionInputs={false} open={card !== null} onOpenChange={open => !open && handleClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
 

@@ -26,7 +26,7 @@ export function SuggestBrandDrawer({ open, initialName, onClose }: SuggestBrandD
   }, [open, initialName])
 
   return (
-    <Drawer.NestedRoot open={open} onOpenChange={isOpen => !isOpen && onClose()}>
+    <Drawer.NestedRoot repositionInputs={false} open={open} onOpenChange={isOpen => !isOpen && onClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-[80] bg-black/40" />
 
