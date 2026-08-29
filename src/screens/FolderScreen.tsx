@@ -92,7 +92,16 @@ function FolderEditDrawer({ folder, open, onClose, onRename, onDelete }: FolderE
         <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[26rem] rounded-t-[1.75rem] bg-card outline-none">
           <div className="px-5 pt-3 pb-8">
             <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
-            <Drawer.Title className="mb-5 text-lg font-extrabold text-foreground">Edit folder</Drawer.Title>
+            <div className="mb-5 flex items-center justify-between">
+              <Drawer.Title className="text-lg font-extrabold text-foreground">Edit folder</Drawer.Title>
+              <button
+                onClick={onDelete}
+                className={`${pressable} -mr-2 flex items-center gap-1.5 rounded-full px-2 py-1 text-sm font-semibold text-destructive`}
+              >
+                <Trash2Icon className="size-4" />
+                Delete
+              </button>
+            </div>
 
             <label className="mb-5 block">
               <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
@@ -104,14 +113,6 @@ function FolderEditDrawer({ folder, open, onClose, onRename, onDelete }: FolderE
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => onRename(event.target.value)}
               />
             </label>
-
-            <button
-              onClick={onDelete}
-              className={`${pressable} mb-3 flex w-full items-center justify-center gap-2 rounded-4xl bg-destructive py-3 text-sm font-semibold text-white hover:bg-destructive/80`}
-            >
-              <Trash2Icon className="size-4" />
-              Delete folder
-            </button>
 
             <button
               onClick={onClose}
