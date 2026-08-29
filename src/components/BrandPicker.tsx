@@ -1,5 +1,5 @@
 import { defaultRangeExtractor, useVirtualizer, type Range } from '@tanstack/react-virtual'
-import { ChevronLeftIcon, SearchIcon } from 'lucide-react'
+import { ChevronLeftIcon, PlusIcon, SearchIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Drawer } from 'vaul'
 import { Input } from '@/components/ui/input'
@@ -134,7 +134,7 @@ export function BrandPicker({ open, onClose, onPick }: BrandPickerProps) {
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-[60] bg-black/40" />
 
-        <Drawer.Content className="fixed inset-x-0 bottom-0 z-[70] mx-auto flex h-[96dvh] max-w-[26rem] flex-col rounded-t-[1.75rem] bg-card outline-none">
+        <Drawer.Content className="fixed inset-x-0 bottom-0 z-[70] mx-auto flex h-[90dvh] max-w-[26rem] flex-col rounded-t-[1.75rem] bg-card outline-none">
           <div className="flex items-center gap-1 px-3 pt-4 pb-2">
             <button
               onClick={handleClose}
@@ -144,6 +144,13 @@ export function BrandPicker({ open, onClose, onPick }: BrandPickerProps) {
               <ChevronLeftIcon className="size-6" />
             </button>
             <Drawer.Title className="text-lg font-extrabold text-foreground">Choose brand</Drawer.Title>
+            <button
+              onClick={() => setSuggestOpen(true)}
+              className={`${pressable} ml-auto flex items-center gap-1.5 rounded-full px-2 py-1 text-sm font-semibold text-primary`}
+            >
+              <PlusIcon className="size-4" />
+              Suggest brand
+            </button>
           </div>
 
           <div className="px-5 pb-3">
@@ -203,12 +210,6 @@ export function BrandPicker({ open, onClose, onPick }: BrandPickerProps) {
             >
               Cancel
             </button>
-            <p className="pt-3 text-center text-[0.8125rem] font-medium text-muted-foreground">
-              Missing a brand?{' '}
-              <button onClick={() => setSuggestOpen(true)} className="font-bold text-primary">
-                Suggest it on GitHub
-              </button>
-            </p>
           </div>
 
           <SuggestBrandDrawer open={suggestOpen} initialName={query.trim()} onClose={() => setSuggestOpen(false)} />
