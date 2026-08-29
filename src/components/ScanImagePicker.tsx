@@ -32,12 +32,12 @@ export function ScanImagePicker({ onDetected, compact = false }: ScanImagePicker
   }
 
   return (
-    <>
+    <div className={`relative ${compact ? 'h-full' : ''}`}>
       <button
         onClick={() => inputRef.current?.click()}
         disabled={status === 'reading'}
         className={`${pressable} flex items-center justify-center gap-2 rounded-2xl border-2! border-dashed! border-input! text-muted-foreground hover:text-foreground ${
-          compact ? 'py-3 text-sm font-semibold' : 'aspect-video w-full flex-col'
+          compact ? 'h-full w-full py-3 text-sm font-semibold' : 'aspect-video w-full flex-col'
         }`}
       >
         {status === 'notfound' ? (
@@ -58,8 +58,17 @@ export function ScanImagePicker({ onDetected, compact = false }: ScanImagePicker
           </span>
         )}
       </button>
-      {/* image/* in the webview offers Take Photo or Photo Library natively */}
-      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
-    </>
+      {/* image/* in the webview offers Take Photo or Photo Library natively; the invisible
+          full-size rect (not display:none) anchors the ios sheet to the drop area */}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        tabIndex={-1}
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-0"
+        onChange={handleFile}
+      />
+    </div>
   )
 }
