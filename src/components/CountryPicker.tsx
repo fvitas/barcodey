@@ -1,4 +1,4 @@
-import { CheckIcon, ChevronLeftIcon, SearchIcon } from 'lucide-react'
+import { CheckIcon, ChevronLeftIcon, SearchIcon, XIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Drawer } from 'vaul'
 import { Input } from '@/components/ui/input'
@@ -49,9 +49,18 @@ export function CountryPicker({ open, selected, onClose, onPick }: CountryPicker
               <Input
                 value={query}
                 placeholder="Search countries"
-                className="h-11 pl-10 text-sm font-semibold"
+                className="h-11 pr-10 pl-10 text-sm font-semibold"
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => setQuery(event.target.value)}
               />
+              {query !== '' && (
+                <button
+                  onClick={() => setQuery('')}
+                  className={`${pressable} absolute top-1/2 right-2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:text-foreground`}
+                  aria-label="Clear search"
+                >
+                  <XIcon className="size-4" />
+                </button>
+              )}
             </div>
           </div>
 

@@ -1,5 +1,5 @@
 import { defaultRangeExtractor, useVirtualizer, type Range } from '@tanstack/react-virtual'
-import { ChevronLeftIcon, PlusIcon, SearchIcon } from 'lucide-react'
+import { ChevronLeftIcon, PlusIcon, SearchIcon, XIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Drawer } from 'vaul'
 import { Input } from '@/components/ui/input'
@@ -159,9 +159,18 @@ export function BrandPicker({ open, onClose, onPick }: BrandPickerProps) {
               <Input
                 value={query}
                 placeholder="Search brands"
-                className="h-11 pl-10 text-sm font-semibold"
+                className="h-11 pr-10 pl-10 text-sm font-semibold"
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleQueryChange(event.target.value)}
               />
+              {query !== '' && (
+                <button
+                  onClick={() => handleQueryChange('')}
+                  className={`${pressable} absolute top-1/2 right-2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:text-foreground`}
+                  aria-label="Clear search"
+                >
+                  <XIcon className="size-4" />
+                </button>
+              )}
             </div>
           </div>
 

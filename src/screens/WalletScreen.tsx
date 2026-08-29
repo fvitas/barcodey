@@ -28,6 +28,7 @@ import {
   SearchIcon,
   SettingsIcon,
   SquareMinusIcon,
+  XIcon,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
@@ -315,6 +316,16 @@ export function WalletScreen() {
             className="w-full bg-transparent py-1.5 text-sm font-medium outline-none placeholder:text-muted-foreground"
             onChange={handleQueryChange}
           />
+
+          {query !== '' && (
+            <button
+              onClick={() => setQuery('')}
+              className={`${pressable} flex size-7 shrink-0 items-center justify-center rounded-full text-muted-foreground/70 hover:text-foreground`}
+              aria-label="Clear search"
+            >
+              <XIcon className="size-4" />
+            </button>
+          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
