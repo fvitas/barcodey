@@ -1,8 +1,10 @@
-import { ExternalLinkIcon } from 'lucide-react'
+import { ChevronDownIcon, ExternalLinkIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Drawer } from 'vaul'
+import { CountryPicker } from '@/components/CountryPicker'
 import { Input } from '@/components/ui/input'
-import { userCountryName } from '@/lib/brands'
+import { userCountry } from '@/lib/brands'
+import { countryName, isCountryCode } from '@/lib/countries'
 import { suggestBrandUrl } from '@/lib/feedback'
 import { pressable } from '@/lib/utils'
 
@@ -14,14 +16,17 @@ type SuggestBrandDrawerProps = {
 
 export function SuggestBrandDrawer({ open, initialName, onClose }: SuggestBrandDrawerProps) {
   const [name, setName] = useState('')
+  // country holds a lowercase ISO code; '' means none picked yet
   const [country, setCountry] = useState('')
+  const [countryOpen, setCountryOpen] = useState(false)
   const [color, setColor] = useState('')
 
   // seed fresh values on every open
   useEffect(() => {
     if (!open) return
     setName(initialName)
-    setCountry(userCountryName())
+    const detected = userCountry()
+    setCountry(detected !== undefined && isCountryCode(detected) ? detected : '')
     setColor('')
   }, [open, initialName])
 
@@ -47,17 +52,25 @@ export function SuggestBrandDrawer({ open, initialName, onClose }: SuggestBrandD
               />
             </label>
 
-            <label className="mb-4 block">
+            <div className="mb-4">
               <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
                 Country
               </span>
-              <Input
-                value={country}
-                placeholder="Where it operates"
-                className="h-11 px-4 text-sm font-semibold"
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) => setCountry(event.target.value)}
-              />
-            </label>
+              <button
+                onClick={() => setCountryOpen(true)}
+                className={`${pressable} flex h-11 w-full items-center gap-2.5 rounded-3xl bg-input/50 px-4 text-sm font-semibold`}
+              >
+                {country === '' ? (
+                  <span className="text-muted-foreground">Where it operates</span>
+                ) : (
+                  <>
+                    <span className={`fi fi-${country} shrink-0 rounded-[3px] ring-1 ring-black/10`} />
+                    <span className="truncate text-foreground">{countryName(country)}</span>
+                  </>
+                )}
+                <ChevronDownIcon className="ml-auto size-4 shrink-0 text-muted-foreground" />
+              </button>
+            </div>
 
             <label className="mb-6 block">
               <span className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">
@@ -72,7 +85,7 @@ export function SuggestBrandDrawer({ open, initialName, onClose }: SuggestBrandD
             </label>
 
             <a
-              href={suggestBrandUrl({ name, country, color })}
+              href={suggestBrandUrl({ name, country: country === '' ? '' : countryName(country), color })}
               target="_blank"
               rel="noreferrer"
               className={`${pressable} flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground ${
@@ -86,6 +99,16 @@ export function SuggestBrandDrawer({ open, initialName, onClose }: SuggestBrandD
               You can attach a logo image on GitHub
             </p>
           </div>
+
+          <CountryPicker
+            open={countryOpen}
+            selected={country}
+            onClose={() => setCountryOpen(false)}
+            onPick={picked => {
+              setCountry(picked.code)
+              setCountryOpen(false)
+            }}
+          />
         </Drawer.Content>
       </Drawer.Portal>
     </Drawer.NestedRoot>
