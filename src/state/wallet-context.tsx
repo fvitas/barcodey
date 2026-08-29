@@ -12,6 +12,7 @@ type WalletContextValue = {
   updateCard: (id: string, patch: Partial<Omit<Card, 'id'>>) => void
   removeCard: (id: string) => void
   moveCard: (activeId: string, overId: string) => void
+  setCardOrder: (ids: string[]) => void
   createFolder: (name: string) => Folder
   renameFolder: (id: string, name: string) => void
   removeFolder: (id: string) => void
@@ -70,6 +71,17 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       const [moved] = cards.splice(from, 1)
       cards.splice(to, 0, moved)
       return { ...current, cards }
+    })
+  }
+
+  // adopt a display order as the manual order; ids missing from the list keep their place at the end
+  function setCardOrder(ids: string[]) {
+    setWallet(current => {
+      const byId = new Map(current.cards.map(card => [card.id, card]))
+      const listed = new Set(ids)
+      const ordered = ids.map(id => byId.get(id)).filter(card => card !== undefined)
+      const rest = current.cards.filter(card => !listed.has(card.id))
+      return { ...current, cards: [...ordered, ...rest] }
     })
   }
 
@@ -134,6 +146,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         updateCard,
         removeCard,
         moveCard,
+        setCardOrder,
         createFolder,
         renameFolder,
         removeFolder,

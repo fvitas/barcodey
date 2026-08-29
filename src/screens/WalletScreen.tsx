@@ -152,7 +152,7 @@ function EmptyState() {
 }
 
 export function WalletScreen() {
-  const { cards, addCard, updateCard, removeCard, moveCard } = useWallet()
+  const { cards, addCard, updateCard, removeCard, moveCard, setCardOrder } = useWallet()
   const { state, update } = useUiState()
   const [query, setQuery] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -165,7 +165,7 @@ export function WalletScreen() {
   const editingCard = cards.find(card => card.id === editingId) ?? null
   const currentSort = sortModes.find(mode => mode.id === state.sort) ?? sortModes[0]
   const currentView = viewOptions.find(option => option.id === state.view) ?? viewOptions[0]
-  const draggable = state.sort === 'manual' && !searching && state.view !== 'deck'
+  const draggable = !searching && state.view !== 'deck'
 
   // grid tiles drag as a whole, so a press-and-hold keeps taps working; the list grip needs no delay
   const listSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
@@ -175,11 +175,29 @@ export function WalletScreen() {
 
   useBrightnessBoost(state.expandedCardId !== null)
 
+  // reordering gestures adopt the resulting order as Custom (deck swipes stay temporary mid-search)
+  function handleDeckOrderChange(ids: string[]) {
+    if (searching) return
+    setCardOrder(ids)
+    if (state.sort !== 'manual') update({ sort: 'manual' })
+  }
+
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
     if (over === null || active.id === over.id) return
     haptic('light')
-    moveCard(String(active.id), String(over.id))
+    if (state.sort === 'manual') {
+      moveCard(String(active.id), String(over.id))
+      return
+    }
+    const ids = sortCards(cards, state.sort).map(card => card.id)
+    const from = ids.indexOf(String(active.id))
+    const to = ids.indexOf(String(over.id))
+    if (from === -1 || to === -1) return
+    const [moved] = ids.splice(from, 1)
+    ids.splice(to, 0, moved)
+    setCardOrder(ids)
+    update({ sort: 'manual' })
   }
 
   function handleQueryChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -332,9 +350,9 @@ export function WalletScreen() {
             expandedCardId={state.expandedCardId}
             resetSignal={`${state.sort}|${query.trim().toLowerCase()}`}
             initialIndex={state.deckIndex}
-            canReorder={state.sort === 'manual' && !searching}
+            canReorder={!searching}
             onIndexChange={handleDeckIndexChange}
-            onReorder={moveCard}
+            onOrderChange={handleDeckOrderChange}
             onToggle={handleToggle}
             onEdit={setEditingId}
             onDelete={handleDelete}

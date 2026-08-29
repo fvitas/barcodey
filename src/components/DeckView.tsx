@@ -17,7 +17,7 @@ type DeckViewProps = {
   initialIndex: number
   canReorder: boolean
   onIndexChange: (index: number) => void
-  onReorder: (activeId: string, overId: string) => void
+  onOrderChange: (ids: string[]) => void
   onToggle: (id: string) => void
   onEdit: (id: string) => void
   onDelete: (id: string) => void
@@ -130,7 +130,7 @@ export function DeckView({
   initialIndex,
   canReorder,
   onIndexChange,
-  onReorder,
+  onOrderChange,
   onToggle,
   onEdit,
   onDelete,
@@ -350,6 +350,7 @@ export function DeckView({
     placed.current.delete(cardId)
     arrivals.current.add(cardId)
     setOrder(next)
+    onOrderChange(next)
   }
 
   function liftTargetIndex(cardY: number, soft: number): number {
@@ -537,7 +538,7 @@ export function DeckView({
       const next = previous.filter(id => id !== active.cardId)
       next.splice(target, 0, active.cardId)
       setOrder(next)
-      onReorder(active.cardId, previous[target])
+      onOrderChange(next)
       return
     }
     if (!active.moved) {
@@ -624,15 +625,13 @@ export function DeckView({
     setOrder(incoming)
   }, [idsKey, cards])
 
-  // sort/search changes reset the conveyor to the first card (locked decision)
+  // sort/search changes reset the conveyor to the first card (locked decision);
+  // same arrangement means a gesture adopted the order into Custom — stay put
   useEffect(() => {
     if (firstResetSignal.current === resetSignal) return
     firstResetSignal.current = resetSignal
     const next = cards.map(card => card.id)
-    if (next.join('|') === orderKey) {
-      animateP(0)
-      return
-    }
+    if (next.join('|') === orderKey) return
     // animateP's rAF would keep repainting this render's pre-sort order over the new
     // placement — jump home and let the orderKey effect glide every card to its slot
     cancelAnimationFrame(raf.current)
