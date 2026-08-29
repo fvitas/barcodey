@@ -1,5 +1,5 @@
 diff --git a/ios/Plugin/BarcodeScannerView.swift b/ios/Plugin/BarcodeScannerView.swift
-index e33df52ba5fa0f5dc4b7959e3ecbc1ba310c48a6..47f687f96ec3dc3162138302e61497d1f0566a8a 100644
+index e33df52ba5fa0f5dc4b7959e3ecbc1ba310c48a6..908dae9ed4e65491ce0a0db8b3de390823cf28e9 100644
 --- a/ios/Plugin/BarcodeScannerView.swift
 +++ b/ios/Plugin/BarcodeScannerView.swift
 @@ -29,6 +29,7 @@ public protocol BarcodeScannerViewDelegate {
@@ -18,7 +18,21 @@ index e33df52ba5fa0f5dc4b7959e3ecbc1ba310c48a6..47f687f96ec3dc3162138302e61497d1
          var setupError: Error?
  
          let captureSession = AVCaptureSession()
-@@ -151,7 +151,13 @@ public protocol BarcodeScannerViewDelegate {
+@@ -55,10 +55,9 @@ public protocol BarcodeScannerViewDelegate {
+         // block
+         captureSessionQueue.sync {
+             do {
+-                captureDevice = AVCaptureDevice.default(.builtInTripleCamera, for: AVMediaType.video, position: settings.lensFacing)
+-                if captureDevice == nil {
+-                    captureDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: AVMediaType.video, position: settings.lensFacing)
+-                }
++                // the virtual triple camera is slow to create and hops lenses at close
++                // range (macro switch); the plain wide angle opens fast and stays put
++                captureDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: AVMediaType.video, position: settings.lensFacing)
+                 guard let captureDevice = captureDevice else {
+                     throw RuntimeError(implementation.plugin.errorNoCaptureDeviceAvailable)
+                 }
+@@ -151,7 +150,13 @@ public protocol BarcodeScannerViewDelegate {
          self.removeTorchButton()
          self.removeCancelButton()
          self.removeVideoPreviewLayer()
@@ -33,3 +47,58 @@ index e33df52ba5fa0f5dc4b7959e3ecbc1ba310c48a6..47f687f96ec3dc3162138302e61497d1
          self.captureSession = nil
          self.barcodeScannerInstance = nil
      }
+@@ -219,11 +224,6 @@ public protocol BarcodeScannerViewDelegate {
+         do {
+             try device.lockForConfiguration()
+ 
+-            // Set appropriate zoom factor for triple camera
+-            if device.deviceType == .builtInTripleCamera {
+-                device.videoZoomFactor = 2.0
+-            }
+-
+             // Set focus mode
+             if device.isFocusModeSupported(.continuousAutoFocus) {
+                 device.focusMode = .continuousAutoFocus
+@@ -288,21 +288,16 @@ public protocol BarcodeScannerViewDelegate {
+     }
+ 
+     private func addCancelButton() {
+-        let interfaceOrientation = UIApplication.shared.windows.first(where: { $0.isKeyWindow })?
+-            .windowScene?.interfaceOrientation ?? UIInterfaceOrientation.portrait
++        // bottom right, styled like the torch button, so it sits under the thumb
+         let image = UIImage(systemName: "xmark")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+         let button = UIButton(type: .custom)
+-        if interfaceOrientation.isPortrait {
+-            button.frame = CGRect(x: 20, y: 50, width: 50, height: 50)
+-        } else {
+-            button.frame = CGRect(x: 20, y: 20, width: 50, height: 50)
+-        }
++        button.frame = CGRect(x: self.bounds.size.width - 80, y: self.bounds.size.height - 86, width: 60, height: 60)
+         button.backgroundColor = .black.withAlphaComponent(0.5)
+         button.setImage(image, for: .normal)
+-        button.layer.cornerRadius = 10
++        button.layer.cornerRadius = button.bounds.size.width / 2
+         button.contentVerticalAlignment = .fill
+         button.contentHorizontalAlignment = .fill
+-        button.imageEdgeInsets = UIEdgeInsets(top: 15, left: 15, bottom: 15, right: 15)
++        button.imageEdgeInsets = UIEdgeInsets(top: 18, left: 18, bottom: 18, right: 18)
+         button.addTarget(self, action: #selector(onCancel), for: .touchUpInside)
+         self.addSubview(button)
+         self.cancelButton = button
+@@ -334,11 +329,11 @@ public protocol BarcodeScannerViewDelegate {
+     }
+ 
+     private func addDetectionAreaView() {
+-        let halfScreenWidth = UIScreen.main.bounds.width / 2
+-        let halfScreenHeight = UIScreen.main.bounds.height / 2
+-        let width = halfScreenWidth > halfScreenHeight ? halfScreenHeight : halfScreenWidth
+-        let topLeft = CGPoint(x: self.center.x - (width / 2), y: self.center.y - (width / 2))
+-        let view = UIView(frame: CGRect(x: topLeft.x, y: topLeft.y, width: width, height: width))
++        // ISO ID-1 card aspect ratio (85.6 x 54 mm), sized to the narrow screen edge
++        let width = min(self.bounds.size.width, self.bounds.size.height) * 0.8
++        let height = width / 1.586
++        let topLeft = CGPoint(x: self.center.x - (width / 2), y: self.center.y - (height / 2))
++        let view = UIView(frame: CGRect(x: topLeft.x, y: topLeft.y, width: width, height: height))
+         view.backgroundColor = UIColor.clear
+         view.layer.cornerRadius = 12
+         view.layer.borderWidth = 4
