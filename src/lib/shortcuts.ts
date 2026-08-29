@@ -12,15 +12,16 @@ export function shortcutItems(cards: Card[], sort: SortMode): ShortcutItem[] {
     .map(card => ({ id: card.id, title: card.name, favorite: card.favorite }))
 }
 
-async function plugin() {
-  const { AppShortcuts } = await import('@capawesome/capacitor-app-shortcuts')
-  return AppShortcuts
+// resolves with the module, never the plugin itself: the plugin proxy fakes every
+// method including `then`, so a promise resolving with it adopts it and hangs forever
+function plugin() {
+  return import('@capawesome/capacitor-app-shortcuts')
 }
 
 // full resync — set replaces the whole list, so no diffing needed
 export async function syncAppShortcuts(items: ShortcutItem[]): Promise<void> {
   if (!hasAppShortcuts) return
-  const AppShortcuts = await plugin()
+  const { AppShortcuts } = await plugin()
   if (items.length === 0) {
     await AppShortcuts.clear()
     return
@@ -39,7 +40,7 @@ export function onShortcutClick(handler: (cardId: string) => void): () => void {
   let remove: (() => void) | null = null
   let cancelled = false
 
-  void plugin().then(async AppShortcuts => {
+  void plugin().then(async ({ AppShortcuts }) => {
     const listener = await AppShortcuts.addListener('click', event => {
       handler(event.shortcutId)
     })

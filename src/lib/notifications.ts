@@ -8,22 +8,23 @@ const devFireSeconds = import.meta.env.DEV && import.meta.env.VITE_EXPIRY_DEV_FI
 
 export type NotificationTap = { kind: ExpiryKind; id: string }
 
-async function plugin() {
-  const { LocalNotifications } = await import('@capacitor/local-notifications')
-  return LocalNotifications
+// resolves with the module, never the plugin itself: the plugin proxy fakes every
+// method including `then`, so a promise resolving with it adopts it and hangs forever
+function plugin() {
+  return import('@capacitor/local-notifications')
 }
 
 export async function requestNotificationPermission(): Promise<boolean> {
   // web has nothing to ask and nothing to schedule, so the switch is free to turn on
   if (!hasNotifications) return true
-  const LocalNotifications = await plugin()
+  const { LocalNotifications } = await plugin()
   const { display } = await LocalNotifications.requestPermissions()
   return display === 'granted'
 }
 
 export async function notificationPermissionGranted(): Promise<boolean> {
   if (!hasNotifications) return true
-  const LocalNotifications = await plugin()
+  const { LocalNotifications } = await plugin()
   const { display } = await LocalNotifications.checkPermissions()
   return display === 'granted'
 }
@@ -31,7 +32,7 @@ export async function notificationPermissionGranted(): Promise<boolean> {
 // full resync — cancel everything, schedule fresh — so a batch-local counter is enough for ids
 export async function syncNotifications(desired: DesiredNotification[]): Promise<void> {
   if (!hasNotifications) return
-  const LocalNotifications = await plugin()
+  const { LocalNotifications } = await plugin()
 
   const pending = await LocalNotifications.getPending()
   if (pending.notifications.length > 0) await LocalNotifications.cancel(pending)
@@ -65,7 +66,7 @@ export function onNotificationTap(handler: (tap: NotificationTap) => void): () =
   let remove: (() => void) | null = null
   let cancelled = false
 
-  void plugin().then(async LocalNotifications => {
+  void plugin().then(async ({ LocalNotifications }) => {
     const listener = await LocalNotifications.addListener('localNotificationActionPerformed', event => {
       const extra: unknown = event.notification.extra
       if (typeof extra !== 'object' || extra === null) return
