@@ -31,6 +31,7 @@ import {
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
+import { ConfirmDrawer } from '@/components/ConfirmDrawer'
 import { DeckView } from '@/components/DeckView'
 import { EditDrawer } from '@/components/EditDrawer'
 import { SettingsDrawer } from '@/components/SettingsDrawer'
@@ -156,6 +157,7 @@ export function WalletScreen() {
   const { state, update } = useUiState()
   const [query, setQuery] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<Card | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
 
   const searching = query.trim().length > 0
@@ -210,11 +212,18 @@ export function WalletScreen() {
   }
 
   function handleDelete(id: string) {
+    const card = cards.find(current => current.id === id)
+    if (card !== undefined) setPendingDelete(card)
+  }
+
+  function handleConfirmDelete() {
+    if (pendingDelete === null) return
     haptic('medium')
-    removeCard(id)
-    if (state.expandedCardId === id) {
+    removeCard(pendingDelete.id)
+    if (state.expandedCardId === pendingDelete.id) {
       update({ expandedCardId: null })
     }
+    setPendingDelete(null)
   }
 
   function handleDeckIndexChange(index: number) {
@@ -398,6 +407,14 @@ export function WalletScreen() {
       </main>
 
       <EditDrawer card={editingCard} onClose={() => setEditingId(null)} onChange={updateCard} />
+      <ConfirmDrawer
+        open={pendingDelete !== null}
+        title="Delete this card?"
+        description={<>“{pendingDelete?.name}” and its photos will be deleted for good. This can’t be undone.</>}
+        confirmLabel="Delete card"
+        onConfirm={handleConfirmDelete}
+        onClose={() => setPendingDelete(null)}
+      />
       <SettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   )

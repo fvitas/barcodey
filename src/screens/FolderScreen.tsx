@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router'
 import { Drawer } from 'vaul'
 import { BrandMark } from '@/components/BrandMark'
+import { ConfirmDrawer } from '@/components/ConfirmDrawer'
 import { EditDrawer } from '@/components/EditDrawer'
 import { WallPass } from '@/components/WallPass'
 import { Input } from '@/components/ui/input'
@@ -133,6 +134,7 @@ export function FolderScreen() {
   const { state, update } = useUiState()
   const navigate = useNavigate()
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<Card | null>(null)
   const [addCardsOpen, setAddCardsOpen] = useState(false)
   const [folderEditOpen, setFolderEditOpen] = useState(false)
 
@@ -154,11 +156,18 @@ export function FolderScreen() {
   }
 
   function handleDelete(id: string) {
+    const card = cards.find(current => current.id === id)
+    if (card !== undefined) setPendingDelete(card)
+  }
+
+  function handleConfirmDelete() {
+    if (pendingDelete === null) return
     haptic('medium')
-    removeCard(id)
-    if (state.expandedCardId === id) {
+    removeCard(pendingDelete.id)
+    if (state.expandedCardId === pendingDelete.id) {
       update({ expandedCardId: null })
     }
+    setPendingDelete(null)
   }
 
   function handleToggleFavorite(id: string) {
@@ -251,6 +260,14 @@ export function FolderScreen() {
         onClose={() => setFolderEditOpen(false)}
         onRename={name => renameFolder(folder.id, name)}
         onDelete={handleDeleteFolder}
+      />
+      <ConfirmDrawer
+        open={pendingDelete !== null}
+        title="Delete this card?"
+        description={<>“{pendingDelete?.name}” and its photos will be deleted for good. This can’t be undone.</>}
+        confirmLabel="Delete card"
+        onConfirm={handleConfirmDelete}
+        onClose={() => setPendingDelete(null)}
       />
       <EditDrawer card={editingCard} onClose={() => setEditingId(null)} onChange={updateCard} />
     </div>

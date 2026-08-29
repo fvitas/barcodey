@@ -165,7 +165,7 @@ export function PassDetails({ card, stretch = false, onEdit, onDelete, onToggleF
           className={`${pressable} flex items-center justify-center gap-2 rounded-4xl bg-destructive py-2.5 text-sm font-semibold text-white hover:bg-destructive/80`}
         >
           <Trash2Icon className="size-4" />
-          Remove
+          Delete
         </button>
       </div>
 
