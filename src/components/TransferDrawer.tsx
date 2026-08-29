@@ -77,7 +77,7 @@ function SendScreen({ open, onClose, wallet, includeDocuments }: SendScreenProps
         <Drawer.Content className="fixed inset-0 z-70 rounded-none bg-white outline-none">
           <button onClick={onClose} aria-label="Stop sending" className="flex size-full flex-col items-center justify-center p-8">
             <Drawer.Title asChild>
-              <p className="absolute top-14 right-8 left-8 truncate text-center text-base font-extrabold text-slate-900">
+              <p className="absolute top-[max(3.5rem,calc(env(safe-area-inset-top)+1rem))] right-8 left-8 truncate text-center text-base font-extrabold text-slate-900">
                 Scan with your other phone
               </p>
             </Drawer.Title>
@@ -88,7 +88,7 @@ function SendScreen({ open, onClose, wallet, includeDocuments }: SendScreenProps
               <p className="text-sm font-medium text-slate-500">Preparing transfer…</p>
             )}
 
-            <div className="absolute right-8 bottom-14 left-8 flex flex-col gap-1.5 text-center">
+            <div className="absolute right-8 bottom-[max(3.5rem,calc(env(safe-area-inset-bottom)+1.5rem))] left-8 flex flex-col gap-1.5 text-center">
               {frames !== null && frames.length > 0 && (
                 <p className="font-mono text-sm font-medium tracking-[0.25em] text-slate-500">
                   {frameIndex + 1} / {frames.length}

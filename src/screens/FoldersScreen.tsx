@@ -98,7 +98,7 @@ export function FoldersScreen() {
 
   return (
     <div className="mx-auto min-h-dvh w-full max-w-[26rem]">
-      <header className="flex items-center justify-between px-5 pt-8 pb-5">
+      <header className="flex items-center justify-between px-5 pt-[max(2rem,calc(env(safe-area-inset-top)+0.5rem))] pb-5">
         <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
           Barcodey<span className="text-primary"> · </span>Folders
         </h1>

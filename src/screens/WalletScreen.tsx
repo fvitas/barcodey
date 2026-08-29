@@ -218,7 +218,7 @@ export function WalletScreen() {
 
   return (
     <div className="mx-auto flex h-dvh w-full max-w-[26rem] flex-col">
-      <header className="shrink-0 px-5 pt-8 pb-4">
+      <header className="shrink-0 px-5 pt-[max(2rem,calc(env(safe-area-inset-top)+0.5rem))] pb-4">
         <div className="mb-5 flex items-center justify-between">
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
             Barcodey<span className="text-primary">.</span>

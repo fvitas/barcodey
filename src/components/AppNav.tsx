@@ -42,7 +42,7 @@ export function AppNav({ onAdd }: AppNavProps) {
   const onWallet = !location.pathname.startsWith('/folders')
 
   return (
-    <nav className="fixed inset-x-0 bottom-4 z-30 mx-auto flex w-fit items-center rounded-full bg-card/95 px-2 py-1.5 shadow-xl shadow-slate-900/15 ring-1 ring-foreground/5 backdrop-blur">
+    <nav className="fixed inset-x-0 bottom-[max(1rem,env(safe-area-inset-bottom))] z-30 mx-auto flex w-fit items-center rounded-full bg-card/95 px-2 py-1.5 shadow-xl shadow-slate-900/15 ring-1 ring-foreground/5 backdrop-blur">
       <Tab label="Wallet" Icon={WalletCardsIcon} active={onWallet} onSelect={() => navigate('/')} />
 
       <button

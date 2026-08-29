@@ -36,7 +36,7 @@ export function BarcodeFullscreen({ name, value, format, svg, onClose }: Barcode
       aria-label="Close barcode"
       className="fixed inset-0 z-100 flex flex-col items-center justify-center bg-white p-8"
     >
-      <p className="absolute top-14 right-8 left-8 truncate text-center text-base font-extrabold text-slate-900">
+      <p className="absolute top-[max(3.5rem,calc(env(safe-area-inset-top)+1rem))] right-8 left-8 truncate text-center text-base font-extrabold text-slate-900">
         {name}
       </p>
       <motion.div
