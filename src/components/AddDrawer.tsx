@@ -1,4 +1,4 @@
-import { CameraIcon } from 'lucide-react'
+import { CameraIcon, IdCardIcon } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
@@ -167,6 +167,11 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
       .catch(() => {})
   }
 
+  function handleAddDocument() {
+    handleClose()
+    navigate('/folders/documents')
+  }
+
   function handleViewCard(id: string) {
     handleClose()
     // the notification-tap plumbing: expand + go home works in deck, list, and grid
@@ -211,7 +216,16 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
         <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[85dvh] max-w-[26rem] flex-col rounded-t-[1.75rem] bg-card outline-none">
           <div className="px-5 pt-3">
             <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
-            <Drawer.Title className="mb-4 text-lg font-extrabold text-foreground">Add card</Drawer.Title>
+            <div className="mb-4 flex items-center justify-between">
+              <Drawer.Title className="text-lg font-extrabold text-foreground">Add card</Drawer.Title>
+              <button
+                onClick={handleAddDocument}
+                className={`${pressable} -mr-2 flex items-center gap-1.5 rounded-full px-2 py-1 text-sm font-semibold text-primary`}
+              >
+                <IdCardIcon className="size-4" />
+                Add document
+              </button>
+            </div>
 
             <Tabs value={mode} onValueChange={value => setMode(value as 'scan' | 'image' | 'manual')} className="mb-5">
               <TabsList className="h-11! w-full">
@@ -448,16 +462,6 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
               className={`${pressable} w-full rounded-4xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/80`}
             >
               Add card
-            </button>
-
-            <button
-              onClick={() => {
-                handleClose()
-                navigate('/folders/documents')
-              }}
-              className={`${pressable} mt-4 w-full rounded-4xl py-1 text-center text-xs font-medium text-muted-foreground`}
-            >
-              Adding an ID or licence? <span className="font-semibold text-primary">Add a document</span>
             </button>
           </div>
         </Drawer.Content>
