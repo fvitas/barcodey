@@ -30,6 +30,19 @@ body {
   padding-bottom: max(1.25rem, calc(var(--safe-area-inset-bottom, 0px) + 0.5rem));
 }
 
+/* android overlay scanner: camerax sits behind the webview, so everything but the
+   scanner chrome has to stop painting — visibility un-hides per subtree, background
+   doesn't, so both are needed */
+html.scanner-active,
+html.scanner-active body {
+  visibility: hidden;
+  background: transparent !important;
+}
+
+html.scanner-active [data-scanner-overlay] {
+  visibility: visible;
+}
+
 /* top edge of a screen header: clears the status bar */
 @utility pt-safe {
   padding-top: max(2rem, calc(env(safe-area-inset-top, 0px) + 0.5rem), calc(var(--safe-area-inset-top, 0px) + 0.5rem));

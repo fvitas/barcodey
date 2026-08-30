@@ -6,6 +6,7 @@ import { Drawer } from 'vaul'
 import { BrandField } from '@/components/BrandField'
 import { ColorRow } from '@/components/ColorRow'
 import { ScanImagePicker } from '@/components/ScanImagePicker'
+import { ScannerOverlay } from '@/components/ScannerOverlay'
 import { CoverAdjust } from '@/components/CoverAdjust'
 import { ExpiryDateField } from '@/components/ExpiryDateField'
 import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
@@ -27,7 +28,7 @@ import {
 } from '@/lib/model'
 import { extractPhotoColor } from '@/lib/photo-color'
 import { bakePhotoRotations, deleteCardPhotos } from '@/lib/photos'
-import { scanWithNativeScanner, type ScanResult } from '@/lib/scanner'
+import { scanWithNativeScanner, usesOverlayScanner, type ScanResult } from '@/lib/scanner'
 import { useUiState } from '@/state/ui-state-context'
 import { useWallet } from '@/state/wallet-context'
 
@@ -103,6 +104,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
   const [rotations, setRotations] = useState<Record<string, number>>({})
   // manual dupes warn on first submit; keying by format:value self-invalidates on any edit
   const [warnedKey, setWarnedKey] = useState<string | null>(null)
+  const [scannerOpen, setScannerOpen] = useState(false)
   const coverPath = cover !== undefined ? photos[cover.side] : undefined
   const coverSrc = usePhotoSrc(coverPath)
   const nameInputRef = useRef<HTMLInputElement>(null)
@@ -170,6 +172,10 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
   }
 
   function handleNativeScan() {
+    if (usesOverlayScanner) {
+      setScannerOpen(true)
+      return
+    }
     void scanWithNativeScanner()
       .then(result => result !== null && handleDetected(result))
       .catch(() => {})
@@ -475,6 +481,8 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
               Add card
             </button>
           </div>
+
+          <ScannerOverlay open={scannerOpen} onDetected={handleDetected} onClose={() => setScannerOpen(false)} />
         </Drawer.Content>
       </Drawer.Portal>
     </Drawer.Root>

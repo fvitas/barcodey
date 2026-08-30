@@ -5,11 +5,12 @@ import { CoverAdjust } from '@/components/CoverAdjust'
 import { ExpiryDateField } from '@/components/ExpiryDateField'
 import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
 import { ScanImagePicker } from '@/components/ScanImagePicker'
+import { ScannerOverlay } from '@/components/ScannerOverlay'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { formatLabels, type Doc, type PhotoSide } from '@/lib/model'
 import { bakePhotoRotations, deleteCardPhotos } from '@/lib/photos'
-import { scanWithNativeScanner } from '@/lib/scanner'
+import { scanWithNativeScanner, usesOverlayScanner } from '@/lib/scanner'
 import { capitalizeFirst, pressable } from '@/lib/utils'
 
 type DocDraft = Pick<Doc, 'name' | 'photos' | 'cover' | 'number' | 'expiry' | 'barcode'>
@@ -30,6 +31,7 @@ function DocumentFields({ value, rotations, onPatch, onRotate }: DocumentFieldsP
   const faceCover = value.cover ?? (faceSide !== undefined ? { side: faceSide, scale: 1, x: 0, y: 0 } : undefined)
   const facePath = faceSide !== undefined ? value.photos[faceSide] : undefined
   const faceSrc = usePhotoSrc(facePath)
+  const [scannerOpen, setScannerOpen] = useState(false)
 
   function handlePhotosChange(photos: Doc['photos']) {
     // removing the photo used as cover falls back to the automatic face
@@ -38,6 +40,10 @@ function DocumentFields({ value, rotations, onPatch, onRotate }: DocumentFieldsP
   }
 
   function handleScan() {
+    if (usesOverlayScanner) {
+      setScannerOpen(true)
+      return
+    }
     void scanWithNativeScanner()
       .then(result => result !== null && onPatch({ barcode: result }))
       .catch(() => {})
@@ -152,6 +158,12 @@ function DocumentFields({ value, rotations, onPatch, onRotate }: DocumentFieldsP
           <ScanImagePicker compact onDetected={result => onPatch({ barcode: result })} />
         </div>
       )}
+
+      <ScannerOverlay
+        open={scannerOpen}
+        onDetected={result => onPatch({ barcode: result })}
+        onClose={() => setScannerOpen(false)}
+      />
     </>
   )
 }

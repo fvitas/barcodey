@@ -6,13 +6,14 @@ import { ColorRow } from '@/components/ColorRow'
 import { CoverAdjust } from '@/components/CoverAdjust'
 import { ExpiryDateField } from '@/components/ExpiryDateField'
 import { PhotoField, usePhotoSrc } from '@/components/PhotoField'
+import { ScannerOverlay } from '@/components/ScannerOverlay'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { haptic } from '@/lib/haptics'
 import { barcodeFormats, digitsOnlyFormats, formatLabels, type Card, type CardPhotos, type PhotoSide } from '@/lib/model'
 import { extractPhotoColor } from '@/lib/photo-color'
 import { bakePhotoRotations } from '@/lib/photos'
-import { scanWithNativeScanner } from '@/lib/scanner'
+import { scanWithNativeScanner, usesOverlayScanner, type ScanResult } from '@/lib/scanner'
 import { capitalizeFirst, pressable } from '@/lib/utils'
 
 type EditDrawerProps = {
@@ -29,6 +30,7 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
   // name edits buffer here so an emptied field never persists; null mirrors card.name
   const [nameDraft, setNameDraft] = useState<string | null>(null)
   const [numberOpen, setNumberOpen] = useState(false)
+  const [scannerOpen, setScannerOpen] = useState(false)
   // same guard for the card number: an emptied field never persists
   const [valueDraft, setValueDraft] = useState<string | null>(null)
   const coverPath = card !== null && card.cover !== undefined ? card.photos[card.cover.side] : undefined
@@ -64,15 +66,19 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
     if (value.trim() !== '') onChange(current.id, { value: value.trim() })
   }
 
+  function applyScan(current: Card, result: ScanResult) {
+    haptic('success')
+    setValueDraft(null)
+    onChange(current.id, { value: result.value, format: result.format })
+  }
+
   function handleRescan(current: Card) {
+    if (usesOverlayScanner) {
+      setScannerOpen(true)
+      return
+    }
     void scanWithNativeScanner()
-      .then(result => {
-        if (result !== null) {
-          haptic('success')
-          setValueDraft(null)
-          onChange(current.id, { value: result.value, format: result.format })
-        }
-      })
+      .then(result => result !== null && applyScan(current, result))
       .catch(() => {})
   }
 
@@ -273,6 +279,14 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
                 </button>
               </div>
             </>
+          )}
+
+          {card !== null && (
+            <ScannerOverlay
+              open={scannerOpen}
+              onDetected={result => applyScan(card, result)}
+              onClose={() => setScannerOpen(false)}
+            />
           )}
         </Drawer.Content>
       </Drawer.Portal>

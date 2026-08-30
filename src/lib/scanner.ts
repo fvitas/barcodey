@@ -1,3 +1,5 @@
+import type { BarcodeFormat as MlkitFormat } from '@capacitor-mlkit/barcode-scanning'
+import { Capacitor } from '@capacitor/core'
 import type { ReaderOptions } from 'zxing-wasm/reader'
 import type { BarcodeFormat } from '@/lib/model'
 
@@ -95,4 +97,47 @@ export async function scanWithNativeScanner(): Promise<ScanResult | null> {
   if (!first || !first.rawValue) return null
   const format = mlkitFormats[first.format]
   return format === undefined ? null : { value: first.rawValue, format }
+}
+
+// android's scan() hands off to a play services activity that can't be styled, so there
+// we run startScan() — camera behind a transparent webview — and draw our own chrome
+export const usesOverlayScanner = Capacitor.getPlatform() === 'android'
+
+// startScan() drives the camera itself, so unlike scan() it needs the runtime permission
+export async function requestScannerPermission(): Promise<boolean> {
+  const { BarcodeScanner } = await import('@capacitor-mlkit/barcode-scanning')
+  const granted = ({ camera }: { camera: string }) => camera === 'granted' || camera === 'limited'
+  if (granted(await BarcodeScanner.checkPermissions())) return true
+  return granted(await BarcodeScanner.requestPermissions())
+}
+
+// searching every format wastes most of each frame's budget — same reasoning as readerOptions
+const overlayFormats = Object.keys(mlkitFormats) as MlkitFormat[]
+
+export async function startOverlayScan(onDetected: (result: ScanResult) => void): Promise<void> {
+  const { BarcodeScanner } = await import('@capacitor-mlkit/barcode-scanning')
+  await BarcodeScanner.addListener('barcodesScanned', ({ barcodes }) => {
+    const first = barcodes[0]
+    if (!first || !first.rawValue) return
+    const format = mlkitFormats[first.format]
+    if (format !== undefined) onDetected({ value: first.rawValue, format })
+  })
+  await BarcodeScanner.startScan({ formats: overlayFormats })
+}
+
+export async function stopOverlayScan(): Promise<void> {
+  const { BarcodeScanner } = await import('@capacitor-mlkit/barcode-scanning')
+  await BarcodeScanner.removeAllListeners()
+  await BarcodeScanner.stopScan()
+}
+
+export async function hasTorch(): Promise<boolean> {
+  const { BarcodeScanner } = await import('@capacitor-mlkit/barcode-scanning')
+  const { available } = await BarcodeScanner.isTorchAvailable()
+  return available
+}
+
+export async function toggleScannerTorch(): Promise<void> {
+  const { BarcodeScanner } = await import('@capacitor-mlkit/barcode-scanning')
+  await BarcodeScanner.toggleTorch()
 }
