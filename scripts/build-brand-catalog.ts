@@ -15,7 +15,7 @@ const scriptsDir = path.dirname(fileURLToPath(import.meta.url))
 const cacheDir = path.join(scriptsDir, '.cache')
 const outDir = path.join(scriptsDir, '..', 'public', 'brands')
 // Wikimedia's bot policy 429s user agents without contact info — keep the URL in
-const userAgent = 'barcodey-brand-catalog/1.0 (https://github.com/fvitas/barcodey-3.0)'
+const userAgent = 'barcodey-brand-catalog/1.0 (https://github.com/fvitas/barcodey)'
 
 // NSI categories where loyalty/membership cards are a thing
 const categories = [

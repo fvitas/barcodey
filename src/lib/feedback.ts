@@ -1,4 +1,4 @@
-export const repoUrl = 'https://github.com/fvitas/barcodey-3.0'
+export const repoUrl = 'https://github.com/fvitas/barcodey'
 
 export type IssueTemplate = 'suggest-brand.yml' | 'bug-report.yml' | 'feature-request.yml'
 
