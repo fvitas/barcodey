@@ -38,7 +38,7 @@ function AddCardsDrawer({ open, unfiledCards, onClose, onAdd }: AddCardsDrawerPr
             </p>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-8">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-safe">
             <div className="flex flex-col gap-2">
               {unfiledCards.map(card => (
                 <button
@@ -106,7 +106,7 @@ function FolderEditDrawer({ folder, open, onClose, onRename, onDelete }: FolderE
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
 
         <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[26rem] rounded-t-[1.75rem] bg-card outline-none">
-          <div className="px-5 pt-3 pb-8">
+          <div className="px-5 pt-3 pb-safe">
             <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
             <div className="mb-5 flex items-center justify-between">
               <Drawer.Title className="text-lg font-extrabold text-foreground">Edit folder</Drawer.Title>
@@ -214,7 +214,7 @@ export function FolderScreen() {
 
   return (
     <div className="mx-auto min-h-dvh w-full max-w-[26rem]">
-      <header className="flex items-center justify-between px-5 pt-[max(2rem,calc(env(safe-area-inset-top)+0.5rem))] pb-5">
+      <header className="flex items-center justify-between px-5 pt-safe pb-5">
         <div className="flex min-w-0 items-center gap-2">
           <button
             onClick={() => navigate('/folders')}

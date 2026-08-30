@@ -161,7 +161,7 @@ function ReceiveScreen({ open, onClose, onDone, wallet }: ReceiveScreenProps) {
         <Drawer.Overlay className="fixed inset-0 z-60 bg-black/40" />
 
         <Drawer.Content className="fixed inset-x-0 bottom-0 z-70 mx-auto max-w-[26rem] rounded-t-[1.75rem] bg-card outline-none">
-          <div className="px-5 pt-3 pb-8">
+          <div className="px-5 pt-3 pb-safe">
             <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
             <Drawer.Title className="mb-1 text-lg font-extrabold text-foreground">Receive cards</Drawer.Title>
 
@@ -234,7 +234,7 @@ export function TransferDrawer({ open, onOpenChange, onComplete }: TransferDrawe
         <Drawer.Overlay className="fixed inset-0 z-50 bg-black/40" />
 
         <Drawer.Content className="fixed inset-x-0 bottom-0 z-60 mx-auto max-w-[26rem] rounded-t-[1.75rem] bg-card outline-none">
-          <div className="px-5 pt-3 pb-8">
+          <div className="px-5 pt-3 pb-safe">
             <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
             <Drawer.Title className="mb-1 text-lg font-extrabold text-foreground">Move to another device</Drawer.Title>
             <p className="mb-5 text-sm font-medium text-muted-foreground">

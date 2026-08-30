@@ -249,7 +249,7 @@ export function WalletScreen() {
 
   return (
     <div className="mx-auto flex h-dvh w-full max-w-[26rem] flex-col">
-      <header className="shrink-0 px-5 pt-[max(2rem,calc(env(safe-area-inset-top)+0.5rem))] pb-4">
+      <header className="shrink-0 px-5 pt-safe pb-4">
         <div className="mb-5 flex items-center justify-between">
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
             Barcodey<span className="text-primary">.</span>
@@ -363,7 +363,7 @@ export function WalletScreen() {
       <main
         className={`min-h-0 flex-1 px-5 ${
           state.view === 'deck'
-            ? 'overflow-hidden pb-[max(0px,calc(env(safe-area-inset-bottom)-1rem))]'
+            ? 'overflow-hidden pb-[max(0px,calc(env(safe-area-inset-bottom)-1rem),calc(var(--safe-area-inset-bottom,0px)-0.5rem))]'
             : 'overflow-y-auto pb-32'
         }`}
       >

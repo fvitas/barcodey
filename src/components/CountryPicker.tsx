@@ -64,7 +64,7 @@ export function CountryPicker({ open, selected, onClose, onPick }: CountryPicker
             </div>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-8">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-safe">
             {countries.length === 0 && (
               <p className="px-5 py-8 text-center text-sm font-medium text-muted-foreground">
                 No countries match “{query.trim()}”

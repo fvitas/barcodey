@@ -61,7 +61,7 @@ function NewFolderDrawer({ open, onClose, onCreate }: NewFolderDrawerProps) {
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
 
         <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[26rem] rounded-t-[1.75rem] bg-card outline-none">
-          <div className="px-5 pt-3 pb-8">
+          <div className="px-5 pt-3 pb-safe">
             <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-input" />
             <Drawer.Title className="mb-5 text-lg font-extrabold text-foreground">New folder</Drawer.Title>
 
@@ -99,7 +99,7 @@ export function FoldersScreen() {
 
   return (
     <div className="mx-auto min-h-dvh w-full max-w-[26rem]">
-      <header className="flex items-center justify-between px-5 pt-[max(2rem,calc(env(safe-area-inset-top)+0.5rem))] pb-5">
+      <header className="flex items-center justify-between px-5 pt-safe pb-5">
         <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
           Barcodey<span className="text-primary"> · </span>Folders
         </h1>

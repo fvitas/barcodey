@@ -457,7 +457,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
             )}
           </div>
 
-          <div className="px-5 pt-4 pb-5">
+          <div className="px-5 pt-4 pb-safe-sm">
             {manualDuplicate !== undefined && (
               <DuplicateBanner
                 format={format}

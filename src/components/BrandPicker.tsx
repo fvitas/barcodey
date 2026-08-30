@@ -212,7 +212,7 @@ export function BrandPicker({ open, onClose, onPick }: BrandPickerProps) {
             </div>
           </div>
 
-          <div className="px-5 pt-3 pb-8">
+          <div className="px-5 pt-3 pb-safe">
             <button
               onClick={handleClose}
               className={`${pressable} w-full rounded-xl bg-muted py-3 text-sm font-semibold text-foreground/80 hover:text-foreground`}

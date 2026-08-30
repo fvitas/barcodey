@@ -264,7 +264,7 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
                 )}
               </div>
 
-              <div className="px-5 pt-4 pb-8">
+              <div className="px-5 pt-4 pb-safe">
                 <button
                   onClick={handleClose}
                   className={`${pressable} w-full rounded-4xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/80`}

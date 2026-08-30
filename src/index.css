@@ -17,6 +17,24 @@ body {
   @apply bg-background font-sans text-foreground antialiased;
 }
 
+/* --safe-area-inset-* are set inline on <html> by capacitor on android only; undefined
+   on ios, so each rule below keeps its original ios value as a separate max() term */
+
+/* bottom edge of a sheet, over a pb-8 baseline */
+@utility pb-safe {
+  padding-bottom: max(2rem, calc(var(--safe-area-inset-bottom, 0px) + 0.5rem));
+}
+
+/* same, over a pb-5 baseline */
+@utility pb-safe-sm {
+  padding-bottom: max(1.25rem, calc(var(--safe-area-inset-bottom, 0px) + 0.5rem));
+}
+
+/* top edge of a screen header: clears the status bar */
+@utility pt-safe {
+  padding-top: max(2rem, calc(env(safe-area-inset-top, 0px) + 0.5rem), calc(var(--safe-area-inset-top, 0px) + 0.5rem));
+}
+
 @theme inline {
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
