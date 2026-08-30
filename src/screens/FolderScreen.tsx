@@ -126,6 +126,7 @@ function FolderEditDrawer({ folder, open, onClose, onRename, onDelete }: FolderE
               <Input
                 ref={focusOnMount}
                 value={nameDraft ?? folder.name}
+                autoCapitalize="sentences"
                 className="h-11 px-4 text-sm font-semibold"
                 onChange={handleNameChange}
               />

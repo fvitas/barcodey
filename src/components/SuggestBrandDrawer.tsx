@@ -48,6 +48,7 @@ export function SuggestBrandDrawer({ open, initialName, onClose }: SuggestBrandD
                 ref={focusOnMount}
                 value={name}
                 placeholder="e.g. Maxi"
+                autoCapitalize="sentences"
                 className="h-11 px-4 text-sm font-semibold"
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => setName(event.target.value)}
               />
@@ -80,6 +81,7 @@ export function SuggestBrandDrawer({ open, initialName, onClose }: SuggestBrandD
               <Input
                 value={color}
                 placeholder="#0050aa, or just name it"
+                autoCapitalize="sentences"
                 className="h-11 px-4 text-sm font-semibold"
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => setColor(event.target.value)}
               />

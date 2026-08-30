@@ -69,6 +69,7 @@ function NewFolderDrawer({ open, onClose, onCreate }: NewFolderDrawerProps) {
               ref={focusOnMount}
               value={name}
               placeholder="e.g. Groceries"
+              autoCapitalize="sentences"
               className="mb-5 h-11 px-4 text-sm font-semibold"
               onChange={(event: React.ChangeEvent<HTMLInputElement>) => setName(event.target.value)}
             />

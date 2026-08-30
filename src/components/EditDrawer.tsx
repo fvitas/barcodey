@@ -117,7 +117,7 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
                   </span>
                   <Input
                     value={nameDraft ?? card.name}
-                    autoCapitalize="words"
+                    autoCapitalize="sentences"
                     className="h-11 px-4 text-sm font-semibold"
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                       handleNameChange(card, event.target.value)
@@ -214,7 +214,6 @@ export function EditDrawer({ card, onClose, onChange }: EditDrawerProps) {
                       <Input
                         value={valueDraft ?? card.value}
                         inputMode={digitsOnlyFormats.has(card.format) ? 'numeric' : undefined}
-                        autoCapitalize="characters"
                         className="h-11 bg-card px-4 font-mono text-sm font-medium"
                         onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                           handleValueChange(card, event.target.value)
