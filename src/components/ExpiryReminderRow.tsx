@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Switch } from '@/components/ui/switch'
-import { requestNotificationPermission } from '@/lib/notifications'
+import { ensureNotificationPermission } from '@/lib/notifications'
 import { useUiState } from '@/state/ui-state-context'
 
 // appears in the drawers only once a date is entered — reminders are opt-in, off by default
@@ -9,22 +9,18 @@ export function ExpiryReminderRow({ expiry }: { expiry: string | undefined }) {
   const [denied, setDenied] = useState(false)
 
   function handleToggle(checked: boolean) {
-    if (!checked) return
-    void requestNotificationPermission().then(granted => {
+    if (!checked) {
+      setDenied(false)
+      update({ expiryReminders: false })
+      return
+    }
+    void ensureNotificationPermission().then(granted => {
       setDenied(!granted)
       if (granted) update({ expiryReminders: true })
     })
   }
 
   if (expiry === undefined) return null
-
-  if (state.expiryReminders) {
-    return (
-      <p className="mb-4 text-xs font-medium text-muted-foreground/80">
-        You’ll be notified 30, 7 and 1 day before.
-      </p>
-    )
-  }
 
   return (
     <div className="mb-4 flex items-center justify-between rounded-xl bg-muted/60 px-4 py-3">
@@ -33,10 +29,12 @@ export function ExpiryReminderRow({ expiry }: { expiry: string | undefined }) {
         <p className="mt-0.5 text-xs font-medium text-muted-foreground/80">
           {denied
             ? 'Allow notifications in device Settings to enable'
-            : 'A heads-up 30, 7 and 1 day before it expires'}
+            : state.expiryReminders
+              ? 'You’ll be notified 30, 7 and 1 day before'
+              : 'A heads-up 30, 7 and 1 day before it expires'}
         </p>
       </div>
-      <Switch checked={false} onCheckedChange={handleToggle} aria-label="Notify me" />
+      <Switch checked={state.expiryReminders} onCheckedChange={handleToggle} aria-label="Notify me" />
     </div>
   )
 }
