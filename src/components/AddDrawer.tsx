@@ -324,6 +324,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                     value={value}
                     placeholder="Type or paste the number"
                     inputMode={digitsOnlyFormats.has(format) ? 'numeric' : undefined}
+                    autoCapitalize="characters"
                     className="h-11 px-4 font-mono text-sm font-medium"
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) => setValue(event.target.value)}
                   />
@@ -360,7 +361,7 @@ export function AddDrawer({ open, onClose, onAdd }: AddDrawerProps) {
                     ref={nameInputRef}
                     value={name}
                     placeholder="e.g. Lidl Plus"
-                    autoCapitalize="sentences"
+                    autoCapitalize="words"
                     className="h-11 px-4 text-sm font-semibold"
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) => setName(capitalizeFirst(event.target.value))}
                   />
