@@ -1,6 +1,7 @@
 import type { BarcodeFormat as MlkitFormat } from '@capacitor-mlkit/barcode-scanning'
 import { Capacitor } from '@capacitor/core'
 import type { ReaderOptions } from 'zxing-wasm/reader'
+import zxingWasmUrl from 'zxing-wasm/reader/zxing_reader.wasm?url'
 import type { BarcodeFormat } from '@/lib/model'
 
 export type ScanResult = { value: string; format: BarcodeFormat }
@@ -77,9 +78,14 @@ const mlkitFormats: Record<string, BarcodeFormat> = {
   PDF_417: 'pdf417',
 }
 
+// zxing fetches its wasm from a cdn unless told otherwise; the object must keep a stable
+// identity because prepareZXingModule shallow-compares it and rebuilds the module on a miss
+const zxingOverrides = { locateFile: () => zxingWasmUrl }
+
 // browser path: camera frames and picked image files both decode here
 export async function scanImage(image: ImageData | Blob, formats?: BarcodeFormat[]): Promise<ScanResult | null> {
-  const { readBarcodes } = await import('zxing-wasm/reader')
+  const { prepareZXingModule, readBarcodes } = await import('zxing-wasm/reader')
+  prepareZXingModule({ overrides: zxingOverrides })
   const options =
     formats === undefined ? readerOptions : { ...readerOptions, formats: formats.map(format => zxingNames[format]) }
   const results = await readBarcodes(image, options)
