@@ -9,7 +9,7 @@ import { authenticateForDocuments, lockMethodLabels } from '@/lib/biometric'
 import { newIssueUrl, type IssueTemplate } from '@/lib/feedback'
 import { setHapticsEnabled } from '@/lib/haptics'
 import { viewModes, walletSchema, type Wallet } from '@/lib/model'
-import { requestNotificationPermission } from '@/lib/notifications'
+import { ensureNotificationPermission } from '@/lib/notifications'
 import { pressable } from '@/lib/utils'
 import { useDocumentsLock } from '@/state/documents-lock-context'
 import { useUiState } from '@/state/ui-state-context'
@@ -60,7 +60,7 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
       update({ expiryReminders: false })
       return
     }
-    void requestNotificationPermission().then(granted => {
+    void ensureNotificationPermission().then(granted => {
       setRemindersDenied(!granted)
       if (granted) update({ expiryReminders: true })
     })

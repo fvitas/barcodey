@@ -14,12 +14,26 @@ function plugin() {
   return import('@capacitor/local-notifications')
 }
 
-export async function requestNotificationPermission(): Promise<boolean> {
+export async function openNotificationSettings(): Promise<void> {
+  if (!hasNotifications) return
+  const { NativeSettings, AndroidSettings, IOSSettings } = await import('capacitor-native-settings')
+  await NativeSettings.open({ optionIOS: IOSSettings.App, optionAndroid: AndroidSettings.AppNotification })
+}
+
+// granted → true; never asked → OS dialog; hard-denied → bounce to device settings,
+// since the OS never re-prompts once denied
+export async function ensureNotificationPermission(): Promise<boolean> {
   // web has nothing to ask and nothing to schedule, so the switch is free to turn on
   if (!hasNotifications) return true
   const { LocalNotifications } = await plugin()
-  const { display } = await LocalNotifications.requestPermissions()
-  return display === 'granted'
+  const { display } = await LocalNotifications.checkPermissions()
+  if (display === 'granted') return true
+  if (display === 'denied') {
+    await openNotificationSettings()
+    return false
+  }
+  const { display: requested } = await LocalNotifications.requestPermissions()
+  return requested === 'granted'
 }
 
 export async function notificationPermissionGranted(): Promise<boolean> {
