@@ -1,5 +1,14 @@
-# supply-chain guard: don't install releases younger than 3 days (malicious
-# versions are typically caught and unpublished within hours)
+# Supply-chain hardening
+# New releases must be 3 days old before pnpm will resolve them
 minimumReleaseAge: 4320
+# pnpm add pins exact versions (no ^ ranges)
+saveExact: true
+# Fail install on any dep build script that isn't explicitly allowed/ignored
+strictDepBuilds: true
+# Both ship prebuilt platform binaries as optional deps; their scripts are unneeded
+allowBuilds:
+  esbuild: false
+  sharp: false
+
 patchedDependencies:
   '@capacitor-mlkit/barcode-scanning': patches/@capacitor-mlkit__barcode-scanning.patch
