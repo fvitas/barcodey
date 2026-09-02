@@ -386,6 +386,8 @@ export function DeckView({
     el.style.transition = reduceMotion ? 'none' : 'transform 0.18s ease-out'
     el.style.transform = `translateY(${active.liftY}px) scale(1.04)`
     el.style.zIndex = '29'
+    // the shadow clips to this square wrapper — round it to match the face or the corners notch
+    el.style.borderRadius = 'calc(var(--radius) * 1.8)'
     el.style.boxShadow = '0 24px 48px rgba(15, 23, 42, 0.35)'
     haptic('light')
     liftRaf.current = requestAnimationFrame(liftTick)
@@ -533,6 +535,7 @@ export function DeckView({
       const el = cardEls.current.get(active.cardId)
       if (el !== undefined) {
         el.style.boxShadow = ''
+        el.style.borderRadius = ''
         // back to stage coordinates — same visual spot, the slot transition takes it from here
         el.style.position = ''
         el.style.top = ''
