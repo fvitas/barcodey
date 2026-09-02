@@ -83,7 +83,8 @@ export function PassDetails({ card, stretch = false, onEdit, onDelete, onToggleF
 
   return (
     <>
-      <div className="mx-5 border-t-2 border-dashed border-border" />
+      {/* fades out ahead of the height collapse — the bare line lingering at the fold reads as stuck */}
+      <motion.div exit={{ opacity: 0 }} transition={{ duration: 0.1 }} className="mx-5 border-t-2 border-dashed border-border" />
 
       <div className={`flex flex-col gap-2.5 p-5 pb-4 ${stretch && plateHtml !== null ? 'min-h-0 flex-1 justify-center' : ''}`}>
         {plateHtml !== null ? (
@@ -115,7 +116,7 @@ export function PassDetails({ card, stretch = false, onEdit, onDelete, onToggleF
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+            exit={{ height: 0, opacity: 0, transition: { duration: 0.22, ease: 'easeOut' } }}
             transition={{ type: 'spring', stiffness: 400, damping: 34 }}
             className="overflow-hidden"
           >
@@ -344,7 +345,8 @@ export function WallPass({
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0 }}
+            // tween exit: the spring's rest tail keeps the panel mounted ~250ms past visual zero, then it blips shut
+            exit={{ height: 0, transition: { duration: 0.22, ease: 'easeOut' } }}
             transition={{ type: 'spring', stiffness: 400, damping: 34 }}
             className="overflow-hidden"
           >

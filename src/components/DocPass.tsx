@@ -149,11 +149,12 @@ export function DocPass({ doc, active, onToggle, onEdit, onDelete }: DocPassProp
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0 }}
+            exit={{ height: 0, transition: { duration: 0.22, ease: 'easeOut' } }}
             transition={{ type: 'spring', stiffness: 400, damping: 34 }}
             className="overflow-hidden"
           >
-            <div className="mx-5 border-t-2 border-dashed border-border" />
+            {/* fades out ahead of the height collapse — the bare line lingering at the fold reads as stuck */}
+            <motion.div exit={{ opacity: 0 }} transition={{ duration: 0.1 }} className="mx-5 border-t-2 border-dashed border-border" />
 
             {photoPaths.length > 0 && (
               <div className="flex flex-col gap-2 px-5 pt-4 pb-1">
