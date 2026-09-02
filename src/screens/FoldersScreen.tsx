@@ -1,4 +1,4 @@
-import { FolderIcon, FolderPlusIcon, IdCardIcon, LockIcon, PlusIcon, SettingsIcon } from 'lucide-react'
+import { FolderPlusIcon, IdCardIcon, LockIcon, PlusIcon, SettingsIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Drawer } from 'vaul'
@@ -10,28 +10,52 @@ import type { Card } from '@/lib/model'
 import { focusOnMount, pressable } from '@/lib/utils'
 import { useWallet } from '@/state/wallet-context'
 
-const fanRotations = [-10, 6, 0]
+const bandCap = 4
 
-function FanPreview({ cards }: { cards: Card[] }) {
+// later bands overpaint earlier ones, so each band's left edge is the visible
+// boundary — anchoring them at i/n fractions keeps the stripes symmetric
+function FolderBands({ cards }: { cards: Card[] }) {
+  const shown = cards.slice(0, bandCap)
+  if (shown.length === 1) {
+    const face = cardFace(shown[0])
+    return <span className={`absolute inset-0 ${face.className}`} style={face.style} />
+  }
+  const step = 100 / shown.length
   return (
-    <div className="relative mb-3 flex h-16 items-center justify-center">
-      {cards.slice(0, 3).map((card, index) => (
-        <span
-          key={card.id}
-          className={`absolute h-12 w-18 rounded-lg shadow-md shadow-slate-900/15 ring-2 ring-card ${cardFace(card).className}`}
-          style={{
-            ...cardFace(card).style,
-            transform: `rotate(${fanRotations[index]}deg) translateX(${(index - 1) * 14}px)`,
-            zIndex: index === 2 ? 2 : index,
-          }}
-        />
-      ))}
-      {cards.length === 0 && (
-        <span className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground/70">
-          <FolderIcon className="size-5" />
-        </span>
-      )}
-    </div>
+    <>
+      {shown.map((card, index) => {
+        const face = cardFace(card)
+        return (
+          <span
+            key={card.id}
+            className={`absolute inset-y-0 ${face.className}`}
+            style={{
+              ...face.style,
+              left: index === 0 ? '-12%' : `${index * step}%`,
+              width: `calc(${step}% + 40px)`,
+              transform: 'skewX(-14deg)',
+            }}
+          />
+        )
+      })}
+    </>
+  )
+}
+
+function FolderTileLabel({ name, count, muted }: { name: string; count: number; muted?: boolean }) {
+  return (
+    <span className="absolute inset-x-4 bottom-3.5 flex flex-col items-start">
+      <span className={`w-full truncate text-2xl font-extrabold tracking-tight ${muted ? 'text-foreground' : 'text-white'}`}>
+        {name}
+      </span>
+      <span
+        className={`mt-1 rounded-full px-2 py-0.5 text-xs font-bold ${
+          muted ? 'bg-muted text-muted-foreground' : 'bg-white/25 text-white backdrop-blur-xs'
+        }`}
+      >
+        {count} {count === 1 ? 'card' : 'cards'}
+      </span>
+    </span>
   )
 }
 
@@ -123,44 +147,49 @@ export function FoldersScreen() {
       </header>
 
       <main className="grid grid-cols-2 gap-3 px-5 pb-32">
+        <button
+          onClick={() => navigate('/folders/documents')}
+          className={`${pressable} flex h-37 flex-col justify-between rounded-2xl bg-gradient-to-br from-slate-800 to-slate-950 bg-origin-border p-4 text-left shadow-sm ring-1 ring-white/10`}
+        >
+          <span className="flex size-12 items-center justify-center rounded-xl bg-white/10 text-white/80">
+            <IdCardIcon className="size-6" />
+          </span>
+          <span className="flex flex-col items-start">
+            <span className="flex items-center gap-1.5 text-[1.375rem] leading-[1.3] font-extrabold tracking-tight text-white">
+              Documents
+              <LockIcon className="size-4.5 shrink-0 text-white/60" />
+            </span>
+            <span className="mt-1 rounded-full bg-white/25 px-2 py-0.5 text-xs font-bold text-white backdrop-blur-xs">
+              {documents.length} {documents.length === 1 ? 'card' : 'cards'}
+            </span>
+          </span>
+        </button>
+
         {folders.map(folder => {
           const folderCards = cardsIn(folder.id)
           return (
             <button
               key={folder.id}
               onClick={() => navigate(`/folders/${folder.id}`)}
-              className={`${pressable} rounded-2xl bg-card p-4 text-left shadow-sm`}
+              className={`${pressable} relative h-37 overflow-hidden rounded-2xl bg-card text-left shadow-sm`}
             >
-              <FanPreview cards={folderCards} />
-              <p className="truncate font-extrabold text-foreground">{folder.name}</p>
-              <p className="text-xs font-medium text-muted-foreground/80">
-                {folderCards.length} {folderCards.length === 1 ? 'card' : 'cards'}
-              </p>
+              {folderCards.length > 0 && (
+                <>
+                  <FolderBands cards={folderCards} />
+                  <span
+                    className="absolute inset-0"
+                    style={{ backgroundImage: 'linear-gradient(to top, rgba(2,6,23,0.78), rgba(2,6,23,0.25) 55%, transparent 80%)' }}
+                  />
+                </>
+              )}
+              <FolderTileLabel name={folder.name} count={folderCards.length} muted={folderCards.length === 0} />
             </button>
           )
         })}
 
         <button
-          onClick={() => navigate('/folders/documents')}
-          className={`${pressable} rounded-2xl bg-gradient-to-br from-slate-800 to-slate-950 bg-origin-border p-4 text-left shadow-sm ring-1 ring-white/10`}
-        >
-          <div className="mb-3 flex h-16 items-center justify-center">
-            <span className="flex size-12 items-center justify-center rounded-xl bg-white/10 text-white/80">
-              <IdCardIcon className="size-6" />
-            </span>
-          </div>
-          <p className="flex items-center gap-1.5 truncate font-extrabold text-white">
-            Documents
-            <LockIcon className="size-3.5 shrink-0 text-white/60" />
-          </p>
-          <p className="text-xs font-medium text-white/50">
-            {documents.length} {documents.length === 1 ? 'document' : 'documents'}
-          </p>
-        </button>
-
-        <button
           onClick={() => setNewFolderOpen(true)}
-          className={`${pressable} flex min-h-32 flex-col items-center justify-center gap-2 rounded-2xl border-2! border-dashed! border-input! text-sm font-semibold text-muted-foreground hover:text-foreground`}
+          className={`${pressable} flex h-37 flex-col items-center justify-center gap-2 rounded-2xl border-2! border-dashed! border-input! text-sm font-semibold text-muted-foreground hover:text-foreground`}
         >
           <PlusIcon className="size-5" />
           New folder
