@@ -84,7 +84,9 @@ export function PassDetails({ card, stretch = false, onEdit, onDelete, onToggleF
   return (
     <>
       {/* fades out ahead of the height collapse — the bare line lingering at the fold reads as stuck */}
-      <motion.div exit={{ opacity: 0 }} transition={{ duration: 0.1 }} className="mx-5 border-t-2 border-dashed border-border" />
+      {!stretch && (
+        <motion.div exit={{ opacity: 0 }} transition={{ duration: 0.1 }} className="mx-5 border-t-2 border-dashed border-border" />
+      )}
 
       <div className={`flex flex-col gap-2.5 p-5 pb-4 ${stretch && plateHtml !== null ? 'min-h-0 flex-1 justify-center' : ''}`}>
         {plateHtml !== null ? (
