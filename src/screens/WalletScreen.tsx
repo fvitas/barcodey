@@ -32,6 +32,7 @@ import {
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
+import { AppWordmark } from '@/components/AppWordmark'
 import { ConfirmDrawer } from '@/components/ConfirmDrawer'
 import { DeckView } from '@/components/DeckView'
 import { EditDrawer } from '@/components/EditDrawer'
@@ -251,9 +252,7 @@ export function WalletScreen() {
     <div className="mx-auto flex h-dvh w-full max-w-[26rem] flex-col">
       <header className="shrink-0 px-5 pt-safe pb-4">
         <div className="mb-5 flex items-center justify-between">
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
-            Barcodey<span className="text-primary">.</span>
-          </h1>
+          <AppWordmark />
 
           <div className="flex gap-2">
             {(import.meta.env.DEV || import.meta.env.VITE_DEBUG_TOOLS === '1') && (

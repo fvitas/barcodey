@@ -2,6 +2,7 @@ import { FolderIcon, FolderPlusIcon, IdCardIcon, LockIcon, PlusIcon, SettingsIco
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Drawer } from 'vaul'
+import { AppWordmark } from '@/components/AppWordmark'
 import { SettingsDrawer } from '@/components/SettingsDrawer'
 import { Input } from '@/components/ui/input'
 import { cardFace } from '@/lib/color'
@@ -101,9 +102,7 @@ export function FoldersScreen() {
   return (
     <div className="mx-auto min-h-dvh w-full max-w-[26rem]">
       <header className="flex items-center justify-between px-5 pt-safe pb-5">
-        <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
-          Barcodey<span className="text-primary"> · </span>Folders
-        </h1>
+        <AppWordmark section="Folders" />
 
         <div className="flex gap-2">
           <button
