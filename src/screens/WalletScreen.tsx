@@ -6,13 +6,7 @@ import {
   useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core'
-import {
-  rectSortingStrategy,
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
+import { rectSortingStrategy, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import {
   ArrowDownAZIcon,
   ArrowUpAZIcon,
@@ -37,7 +31,7 @@ import { ConfirmDrawer } from '@/components/ConfirmDrawer'
 import { DeckView } from '@/components/DeckView'
 import { EditDrawer } from '@/components/EditDrawer'
 import { SettingsDrawer } from '@/components/SettingsDrawer'
-import { WallPass } from '@/components/WallPass'
+import { SortablePass } from '@/components/SortablePass'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,52 +60,6 @@ const viewOptions: { id: ViewMode; label: string; Icon: typeof Rows3Icon }[] = [
   { id: 'grid', label: 'Grid', Icon: LayoutGridIcon },
   { id: 'deck', label: 'Deck', Icon: GalleryVerticalEndIcon },
 ]
-
-type SortablePassProps = {
-  card: Card
-  active: boolean
-  view: ViewMode
-  draggable: boolean
-  onToggle: (id: string) => void
-  onEdit: (id: string) => void
-  onDelete: (id: string) => void
-  onToggleFavorite: (id: string) => void
-}
-
-function SortablePass({ card, active, view, draggable, ...passProps }: SortablePassProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: card.id,
-    disabled: !draggable,
-  })
-
-  // list drags from the grip handle; grid tiles drag as a whole (press-and-hold sensor)
-  const gridDrag = draggable && view === 'grid' && !active
-  const gripHandle = draggable && (view === 'list' || active) && (
-    <button
-      {...attributes}
-      {...listeners}
-      aria-label="Reorder"
-      className="relative -ml-1 shrink-0 cursor-grab touch-none p-1 text-white/60 active:cursor-grabbing"
-    >
-      <GripVerticalIcon className="size-5" />
-    </button>
-  )
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition,
-        touchAction: gridDrag ? 'manipulation' : undefined,
-      }}
-      className={`${isDragging ? 'relative z-20' : ''} ${view === 'grid' && active ? 'col-span-2' : ''}`}
-      {...(gridDrag ? { ...attributes, ...listeners } : {})}
-    >
-      <WallPass card={card} active={active} view={view} leading={gripHandle || undefined} {...passProps} />
-    </div>
-  )
-}
 
 function EmptyState() {
   const openAddDrawer = useOpenAddDrawer()

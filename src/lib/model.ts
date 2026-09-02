@@ -65,6 +65,7 @@ const cardSchema = z.object({
 const folderSchema = z.object({
   id: z.string(),
   name: z.string(),
+  order: z.array(z.string()).default([]), // card ids, the folder's own custom order; default keeps old wallets valid
 })
 
 // documents (IDs, licences) are photos-first: photos carry the content, everything else is optional
@@ -149,6 +150,14 @@ export function sortCards(cards: Card[], mode: SortMode): Card[] {
   const sorted = mode === 'manual' ? [...cards] : [...cards].sort(sortComparators[mode])
   // favorites pin to top within any sort; Array.sort is stable so relative order survives
   return sorted.sort((a, b) => Number(b.favorite) - Number(a.favorite))
+}
+
+// cards listed in `order` come first; unlisted cards append in given order, stale ids are ignored
+export function orderFolderCards(cards: Card[], order: string[]): Card[] {
+  const position = new Map(order.map((id, index) => [id, index]))
+  const listed = cards.filter(card => position.has(card.id))
+  listed.sort((a, b) => (position.get(a.id) ?? 0) - (position.get(b.id) ?? 0))
+  return [...listed, ...cards.filter(card => !position.has(card.id))]
 }
 
 export function findDuplicateCard(cards: Card[], value: string, format: BarcodeFormat): Card | undefined {

@@ -1,3 +1,14 @@
+import {
+  closestCenter,
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type Modifier,
+} from '@dnd-kit/core'
+import { rectSortingStrategy, SortableContext, useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { FolderPlusIcon, IdCardIcon, LockIcon, PlusIcon, SettingsIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
@@ -6,11 +17,26 @@ import { AppWordmark } from '@/components/AppWordmark'
 import { SettingsDrawer } from '@/components/SettingsDrawer'
 import { Input } from '@/components/ui/input'
 import { cardFace } from '@/lib/color'
-import type { Card } from '@/lib/model'
+import { haptic } from '@/lib/haptics'
+import { orderFolderCards, type Card, type Folder } from '@/lib/model'
 import { focusOnMount, pressable } from '@/lib/utils'
 import { useWallet } from '@/state/wallet-context'
 
 const bandCap = 4
+
+// a dragged tile stays inside the grid — past the bottom it would grow the page's scroll overflow
+const clampToParent: Modifier = ({ transform, containerNodeRect, draggingNodeRect }) => {
+  if (!containerNodeRect || !draggingNodeRect) return transform
+  const minX = containerNodeRect.left - draggingNodeRect.left
+  const maxX = containerNodeRect.left + containerNodeRect.width - (draggingNodeRect.left + draggingNodeRect.width)
+  const minY = containerNodeRect.top - draggingNodeRect.top
+  const maxY = containerNodeRect.top + containerNodeRect.height - (draggingNodeRect.top + draggingNodeRect.height)
+  return {
+    ...transform,
+    x: Math.min(Math.max(transform.x, minX), maxX),
+    y: Math.min(Math.max(transform.y, minY), maxY),
+  }
+}
 
 // later bands overpaint earlier ones, so each band's left edge is the visible
 // boundary — anchoring them at i/n fractions keeps the stripes symmetric
@@ -56,6 +82,43 @@ function FolderTileLabel({ name, count, muted }: { name: string; count: number; 
         {count} {count === 1 ? 'card' : 'cards'}
       </span>
     </span>
+  )
+}
+
+type SortableFolderTileProps = {
+  folder: Folder
+  cards: Card[]
+  onOpen: (id: string) => void
+}
+
+// tiles drag as a whole, so the press-and-hold sensor keeps taps working
+function SortableFolderTile({ folder, cards, onOpen }: SortableFolderTileProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: folder.id })
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition, touchAction: 'manipulation' }}
+      className={isDragging ? 'relative z-20' : ''}
+      {...attributes}
+      {...listeners}
+    >
+      <button
+        onClick={() => onOpen(folder.id)}
+        className={`${pressable} relative h-37 w-full overflow-hidden rounded-2xl bg-card text-left shadow-sm`}
+      >
+        {cards.length > 0 && (
+          <>
+            <FolderBands cards={cards} />
+            <span
+              className="absolute inset-0"
+              style={{ backgroundImage: 'linear-gradient(to top, rgba(2,6,23,0.78), rgba(2,6,23,0.25) 55%, transparent 80%)' }}
+            />
+          </>
+        )}
+        <FolderTileLabel name={folder.name} count={cards.length} muted={cards.length === 0} />
+      </button>
+    </div>
   )
 }
 
@@ -114,13 +177,25 @@ function NewFolderDrawer({ open, onClose, onCreate }: NewFolderDrawerProps) {
 }
 
 export function FoldersScreen() {
-  const { cards, folders, documents, createFolder } = useWallet()
+  const { cards, folders, documents, createFolder, moveFolder } = useWallet()
   const navigate = useNavigate()
   const [newFolderOpen, setNewFolderOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
 
-  function cardsIn(folderId: string): Card[] {
-    return cards.filter(card => card.folderId === folderId)
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { delay: 220, tolerance: 8 } }))
+
+  function cardsIn(folder: Folder): Card[] {
+    return orderFolderCards(
+      cards.filter(card => card.folderId === folder.id),
+      folder.order,
+    )
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (over === null || active.id === over.id) return
+    haptic('light')
+    moveFolder(String(active.id), String(over.id))
   }
 
   return (
@@ -165,27 +240,24 @@ export function FoldersScreen() {
           </span>
         </button>
 
-        {folders.map(folder => {
-          const folderCards = cardsIn(folder.id)
-          return (
-            <button
-              key={folder.id}
-              onClick={() => navigate(`/folders/${folder.id}`)}
-              className={`${pressable} relative h-37 overflow-hidden rounded-2xl bg-card text-left shadow-sm`}
-            >
-              {folderCards.length > 0 && (
-                <>
-                  <FolderBands cards={folderCards} />
-                  <span
-                    className="absolute inset-0"
-                    style={{ backgroundImage: 'linear-gradient(to top, rgba(2,6,23,0.78), rgba(2,6,23,0.25) 55%, transparent 80%)' }}
-                  />
-                </>
-              )}
-              <FolderTileLabel name={folder.name} count={folderCards.length} muted={folderCards.length === 0} />
-            </button>
-          )
-        })}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          modifiers={[clampToParent]}
+          onDragStart={() => haptic('light')}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={folders.map(folder => folder.id)} strategy={rectSortingStrategy}>
+            {folders.map(folder => (
+              <SortableFolderTile
+                key={folder.id}
+                folder={folder}
+                cards={cardsIn(folder)}
+                onOpen={id => navigate(`/folders/${id}`)}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
 
         <button
           onClick={() => setNewFolderOpen(true)}

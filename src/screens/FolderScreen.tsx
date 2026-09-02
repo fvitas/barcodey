@@ -1,3 +1,12 @@
+import {
+  closestCenter,
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import { rectSortingStrategy, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { ChevronLeftIcon, MinusCircleIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
 import { useState } from 'react'
@@ -6,12 +15,12 @@ import { Drawer } from 'vaul'
 import { BrandMark } from '@/components/BrandMark'
 import { ConfirmDrawer } from '@/components/ConfirmDrawer'
 import { EditDrawer } from '@/components/EditDrawer'
-import { WallPass } from '@/components/WallPass'
+import { SortablePass } from '@/components/SortablePass'
 import { Input } from '@/components/ui/input'
 import { useBrightnessBoost } from '@/hooks/use-brightness-boost'
 import { cardFace } from '@/lib/color'
 import { haptic } from '@/lib/haptics'
-import type { Card, Folder } from '@/lib/model'
+import { orderFolderCards, type Card, type Folder } from '@/lib/model'
 import { focusOnMount, pressable } from '@/lib/utils'
 import { useUiState } from '@/state/ui-state-context'
 import { useWallet } from '@/state/wallet-context'
@@ -157,7 +166,8 @@ function FolderEditDrawer({ folder, open, onClose, onRename, onDelete }: FolderE
 
 export function FolderScreen() {
   const { folderId } = useParams()
-  const { cards, folders, updateCard, removeCard, renameFolder, removeFolder, setCardFolder } = useWallet()
+  const { cards, folders, updateCard, removeCard, renameFolder, removeFolder, setCardFolder, setFolderCardOrder } =
+    useWallet()
   const { state, update } = useUiState()
   const navigate = useNavigate()
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -167,15 +177,39 @@ export function FolderScreen() {
 
   const folder = folders.find(current => current.id === folderId) ?? null
 
+  // grid tiles drag as a whole, so a press-and-hold keeps taps working; the list grip needs no delay
+  const listSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
+  const gridSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { delay: 220, tolerance: 8 } }),
+  )
+
   useBrightnessBoost(state.expandedCardId !== null)
 
   if (folder === null) {
     return <Navigate to="/folders" replace />
   }
 
-  const folderCards = cards.filter(card => card.folderId === folder.id)
+  // deck is a whole-wallet browsing mode; inside a folder it falls back to list
+  const view = state.view === 'deck' ? 'list' : state.view
+  const folderCards = orderFolderCards(
+    cards.filter(card => card.folderId === folder.id),
+    folder.order,
+  )
   const unfiledCards = cards.filter(card => card.folderId === null)
   const editingCard = cards.find(card => card.id === editingId) ?? null
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (folder === null || over === null || active.id === over.id) return
+    haptic('light')
+    const ids = folderCards.map(card => card.id)
+    const from = ids.indexOf(String(active.id))
+    const to = ids.indexOf(String(over.id))
+    if (from === -1 || to === -1) return
+    const [moved] = ids.splice(from, 1)
+    ids.splice(to, 0, moved)
+    setFolderCardOrder(folder.id, ids)
+  }
 
   function handleToggle(id: string) {
     haptic('light')
@@ -242,29 +276,44 @@ export function FolderScreen() {
       </header>
 
       <main className="flex flex-col gap-3 px-5 pb-32">
-        <AnimatePresence initial={false}>
-          {folderCards.map(card => (
-            <WallPass
-              key={card.id}
-              card={card}
-              active={card.id === state.expandedCardId}
-              view="list"
-              trailing={
-                <button
-                  onClick={() => setCardFolder(card.id, null)}
-                  className="relative shrink-0 p-1 text-white/60"
-                  aria-label="Remove from folder"
-                >
-                  <MinusCircleIcon className="size-5" />
-                </button>
-              }
-              onToggle={handleToggle}
-              onEdit={setEditingId}
-              onDelete={handleDelete}
-              onToggleFavorite={handleToggleFavorite}
-            />
-          ))}
-        </AnimatePresence>
+        <DndContext
+          sensors={view === 'grid' ? gridSensors : listSensors}
+          collisionDetection={closestCenter}
+          onDragStart={() => haptic('light')}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={folderCards.map(card => card.id)}
+            strategy={view === 'grid' ? rectSortingStrategy : verticalListSortingStrategy}
+          >
+            <div className={view === 'grid' ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-3'}>
+              <AnimatePresence initial={false}>
+                {folderCards.map(card => (
+                  <SortablePass
+                    key={card.id}
+                    card={card}
+                    active={card.id === state.expandedCardId}
+                    view={view}
+                    draggable
+                    trailing={
+                      <button
+                        onClick={() => setCardFolder(card.id, null)}
+                        className="relative shrink-0 p-1 text-white/60"
+                        aria-label="Remove from folder"
+                      >
+                        <MinusCircleIcon className="size-5" />
+                      </button>
+                    }
+                    onToggle={handleToggle}
+                    onEdit={setEditingId}
+                    onDelete={handleDelete}
+                    onToggleFavorite={handleToggleFavorite}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
+          </SortableContext>
+        </DndContext>
 
         <button
           onClick={() => setAddCardsOpen(true)}

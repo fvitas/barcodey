@@ -48,7 +48,7 @@ describe('encodeTransfer / decodeTransfer', () => {
   it('round-trips a wallet through frames', async () => {
     const wallet = makeWallet(
       [makeCard(), makeCard({ name: 'Lidl', value: '4056489120000', format: 'ean13' })],
-      [{ id: 'f1', name: 'Groceries' }],
+      [{ id: 'f1', name: 'Groceries', order: [] }],
     )
     const frames = await encodeTransfer(wallet, { includeDocuments: true })
     expect(await collectAll(frames)).toEqual(wallet)
@@ -138,12 +138,12 @@ describe('mergeWallet', () => {
   })
 
   it('remaps folder ids onto existing same-name folders', () => {
-    const mine = makeWallet([], [{ id: 'mine-1', name: 'Groceries' }])
+    const mine = makeWallet([], [{ id: 'mine-1', name: 'Groceries', order: [] }])
     const theirs = makeWallet(
       [makeCard({ value: 'A', folderId: 'theirs-1' }), makeCard({ value: 'B', folderId: 'theirs-2' })],
       [
-        { id: 'theirs-1', name: 'Groceries' },
-        { id: 'theirs-2', name: 'Travel' },
+        { id: 'theirs-1', name: 'Groceries', order: [] },
+        { id: 'theirs-2', name: 'Travel', order: [] },
       ],
     )
     const result = mergeWallet(mine, theirs)
@@ -182,7 +182,7 @@ describe('mergeWallet', () => {
   })
 
   it('merging into an empty wallet is a full copy', () => {
-    const theirs = makeWallet([makeCard()], [{ id: 'f1', name: 'Groceries' }], [makeDoc()])
+    const theirs = makeWallet([makeCard()], [{ id: 'f1', name: 'Groceries', order: [] }], [makeDoc()])
     const result = mergeWallet(makeWallet(), theirs)
     expect(result.wallet.cards).toHaveLength(1)
     expect(result.wallet.folders).toHaveLength(1)

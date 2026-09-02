@@ -16,7 +16,9 @@ type WalletContextValue = {
   createFolder: (name: string) => Folder
   renameFolder: (id: string, name: string) => void
   removeFolder: (id: string) => void
+  moveFolder: (activeId: string, overId: string) => void
   setCardFolder: (cardId: string, folderId: string | null) => void
+  setFolderCardOrder: (folderId: string, ids: string[]) => void
   addDocument: (doc: Doc) => void
   updateDocument: (id: string, patch: Partial<Omit<Doc, 'id'>>) => void
   removeDocument: (id: string) => void
@@ -24,6 +26,12 @@ type WalletContextValue = {
 }
 
 const WalletContext = createContext<WalletContextValue | null>(null)
+
+function dropFromFolderOrders(folders: Folder[], cardId: string): Folder[] {
+  return folders.map(folder =>
+    folder.order.includes(cardId) ? { ...folder, order: folder.order.filter(id => id !== cardId) } : folder,
+  )
+}
 
 export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [wallet, setWallet] = useState(emptyWallet)
@@ -58,7 +66,11 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   function removeCard(id: string) {
     const card = wallet.cards.find(card => card.id === id)
     if (card !== undefined) void deleteCardPhotos(card.photos)
-    setWallet(current => ({ ...current, cards: current.cards.filter(card => card.id !== id) }))
+    setWallet(current => ({
+      ...current,
+      cards: current.cards.filter(card => card.id !== id),
+      folders: dropFromFolderOrders(current.folders, id),
+    }))
   }
 
   // manual order = array order in wallet.json
@@ -86,7 +98,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   }
 
   function createFolder(name: string): Folder {
-    const folder: Folder = { id: crypto.randomUUID(), name }
+    const folder: Folder = { id: crypto.randomUUID(), name, order: [] }
     setWallet(current => ({ ...current, folders: [...current.folders, folder] }))
     return folder
   }
@@ -107,10 +119,32 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     }))
   }
 
+  function moveFolder(activeId: string, overId: string) {
+    setWallet(current => {
+      const from = current.folders.findIndex(folder => folder.id === activeId)
+      const to = current.folders.findIndex(folder => folder.id === overId)
+      if (from === -1 || to === -1 || from === to) return current
+      const folders = [...current.folders]
+      const [moved] = folders.splice(from, 1)
+      folders.splice(to, 0, moved)
+      return { ...current, folders }
+    })
+  }
+
   function setCardFolder(cardId: string, folderId: string | null) {
     setWallet(current => ({
       ...current,
       cards: current.cards.map(card => (card.id === cardId ? { ...card, folderId } : card)),
+      folders: dropFromFolderOrders(current.folders, cardId).map(folder =>
+        folder.id === folderId ? { ...folder, order: [...folder.order, cardId] } : folder,
+      ),
+    }))
+  }
+
+  function setFolderCardOrder(folderId: string, ids: string[]) {
+    setWallet(current => ({
+      ...current,
+      folders: current.folders.map(folder => (folder.id === folderId ? { ...folder, order: ids } : folder)),
     }))
   }
 
@@ -150,7 +184,9 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         createFolder,
         renameFolder,
         removeFolder,
+        moveFolder,
         setCardFolder,
+        setFolderCardOrder,
         addDocument,
         updateDocument,
         removeDocument,

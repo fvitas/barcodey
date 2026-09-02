@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { emptyWallet, findDuplicateCard, sortCards, walletSchema, type Card, type Doc, type Wallet } from '@/lib/model'
+import {
+  emptyWallet,
+  findDuplicateCard,
+  orderFolderCards,
+  sortCards,
+  walletSchema,
+  type Card,
+  type Doc,
+  type Wallet,
+} from '@/lib/model'
 
 function makeCard(patch: Partial<Card> = {}): Card {
   return {
@@ -105,6 +114,32 @@ describe('findDuplicateCard', () => {
   })
 })
 
+describe('orderFolderCards', () => {
+  const aldi = makeCard({ name: 'Aldi' })
+  const lidl = makeCard({ name: 'Lidl' })
+  const maxi = makeCard({ name: 'Maxi' })
+
+  it('orders cards by the folder order', () => {
+    const ordered = orderFolderCards([aldi, lidl, maxi], [maxi.id, aldi.id, lidl.id])
+    expect(ordered.map(card => card.name)).toEqual(['Maxi', 'Aldi', 'Lidl'])
+  })
+
+  it('appends unlisted cards after ordered ones', () => {
+    const ordered = orderFolderCards([aldi, lidl, maxi], [maxi.id])
+    expect(ordered.map(card => card.name)).toEqual(['Maxi', 'Aldi', 'Lidl'])
+  })
+
+  it('ignores stale ids of removed cards', () => {
+    const ordered = orderFolderCards([aldi, lidl], ['gone', lidl.id, aldi.id])
+    expect(ordered.map(card => card.name)).toEqual(['Lidl', 'Aldi'])
+  })
+
+  it('keeps given order when the folder order is empty', () => {
+    const ordered = orderFolderCards([lidl, aldi], [])
+    expect(ordered.map(card => card.name)).toEqual(['Lidl', 'Aldi'])
+  })
+})
+
 describe('walletSchema (backup format)', () => {
   it('round-trips a wallet through JSON unchanged', () => {
     const wallet: Wallet = {
@@ -113,7 +148,7 @@ describe('walletSchema (backup format)', () => {
         makeCard({ name: 'Lidl Plus', format: 'ean13', value: '4006381333931' }),
         makeCard({ name: 'Starbucks', format: 'qrcode', favorite: true, folderId: 'f1' }),
       ],
-      folders: [{ id: 'f1', name: 'Coffee' }],
+      folders: [{ id: 'f1', name: 'Coffee', order: [] }],
       documents: [],
     }
     const parsed = walletSchema.parse(JSON.parse(JSON.stringify(wallet)))
@@ -136,6 +171,12 @@ describe('walletSchema (backup format)', () => {
     const wallet: Wallet = { version: 1, cards: [card], folders: [], documents: [] }
     const parsed = walletSchema.parse(JSON.parse(JSON.stringify(wallet)))
     expect(parsed.cards[0].photos).toEqual({ front: 'photos/a.jpeg', back: 'photos/b.jpeg' })
+  })
+
+  it('defaults folder order to empty on pre-order backups', () => {
+    const wallet = { version: 1, cards: [], folders: [{ id: 'f1', name: 'Coffee' }] }
+    const parsed = walletSchema.parse(wallet)
+    expect(parsed.folders[0].order).toEqual([])
   })
 
   it('defaults documents to empty on pre-documents backups', () => {
