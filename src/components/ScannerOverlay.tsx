@@ -55,7 +55,8 @@ export function ScannerOverlay({ open, onDetected, onClose }: ScannerOverlayProp
       })
       if (cancelled) return
       setReady(true)
-      setTorchAvailable(await hasTorch())
+      const torchSupported = await hasTorch()
+      if (!cancelled) setTorchAvailable(torchSupported)
     }
 
     document.documentElement.classList.add('scanner-active')

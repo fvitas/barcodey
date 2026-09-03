@@ -11,6 +11,7 @@ export async function extractPhotoColor(path: string): Promise<string | null> {
   if (src === null) return null
   try {
     const response = await fetch(src)
+    if (!response.ok) return null
     const bitmap = await createImageBitmap(await response.blob())
     // a thumbnail is plenty for a dominant color, and keeps extraction at a few ms
     const scale = Math.min(1, 48 / Math.max(bitmap.width, bitmap.height))
