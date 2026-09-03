@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core'
 import type { DesiredNotification, ExpiryKind } from '@/lib/expiry'
 
-export const hasNotifications = Capacitor.isNativePlatform()
+const hasNotifications = Capacitor.isNativePlatform()
 
 // dev-only: the first real reminder is 30 days out, so a simulator run would never see one
 const devFireSeconds = import.meta.env.DEV && import.meta.env.VITE_EXPIRY_DEV_FIRE === '1'
@@ -14,7 +14,7 @@ function plugin() {
   return import('@capacitor/local-notifications')
 }
 
-export async function openNotificationSettings(): Promise<void> {
+async function openNotificationSettings(): Promise<void> {
   if (!hasNotifications) return
   const { NativeSettings, AndroidSettings, IOSSettings } = await import('capacitor-native-settings')
   await NativeSettings.open({ optionIOS: IOSSettings.App, optionAndroid: AndroidSettings.AppNotification })
@@ -36,7 +36,7 @@ export async function ensureNotificationPermission(): Promise<boolean> {
   return requested === 'granted'
 }
 
-export async function notificationPermissionGranted(): Promise<boolean> {
+async function notificationPermissionGranted(): Promise<boolean> {
   if (!hasNotifications) return true
   const { LocalNotifications } = await plugin()
   const { display } = await LocalNotifications.checkPermissions()

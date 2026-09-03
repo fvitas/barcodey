@@ -13,7 +13,7 @@ const selectedRing = 'ring-2 ring-primary ring-offset-2 ring-offset-card'
 const rainbow =
   'conic-gradient(#ff2d55 0deg 60deg, #ff9f0a 60deg 120deg, #30d158 120deg 180deg, #64d2ff 180deg 240deg, #0a84ff 240deg 300deg, #bf5af2 300deg 360deg)'
 
-export function useExtractedPhotoColor(photos: CardPhotos): string | null {
+function useExtractedPhotoColor(photos: CardPhotos): string | null {
   const path = photos.front ?? photos.back
   // the last extraction survives photo removal so the swatch (and its ring) doesn't vanish mid-edit
   const [extracted, setExtracted] = useState<string | null>(null)

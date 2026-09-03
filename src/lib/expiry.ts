@@ -1,7 +1,7 @@
 import { formatExpiry, type Card, type Doc } from '@/lib/model'
 
-export const expiryLeadDays = [30, 7, 1] as const
-export const pillWindowDays = 30
+const expiryLeadDays = [30, 7, 1] as const
+const pillWindowDays = 30
 // iOS silently keeps only 64 pending notifications per app; 60 leaves headroom for 20 dated items
 export const notificationCap = 60
 

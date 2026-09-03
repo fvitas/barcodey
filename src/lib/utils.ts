@@ -15,6 +15,6 @@ export function focusOnMount(node: HTMLInputElement | null) {
   if (node !== null) requestAnimationFrame(() => requestAnimationFrame(() => node.focus()))
 }
 
-// shadcn-luma interaction language for hand-rolled buttons (mirrors ui/button.tsx)
+// shadcn-luma interaction language for hand-rolled buttons
 export const pressable =
   'border border-transparent transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 active:translate-y-px disabled:pointer-events-none disabled:opacity-50'

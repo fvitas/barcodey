@@ -137,9 +137,8 @@ export const viewModes = ['deck', 'list', 'grid'] as const
 
 export type ViewMode = (typeof viewModes)[number]
 export type SortMode = 'manual' | 'az' | 'za' | 'newest' | 'oldest'
-export type Appearance = 'light' | 'dark' | 'system'
 
-export const sortComparators: Record<Exclude<SortMode, 'manual'>, (a: Card, b: Card) => number> = {
+const sortComparators: Record<Exclude<SortMode, 'manual'>, (a: Card, b: Card) => number> = {
   az: (a, b) => a.name.localeCompare(b.name),
   za: (a, b) => b.name.localeCompare(a.name),
   newest: (a, b) => b.addedAt.localeCompare(a.addedAt),

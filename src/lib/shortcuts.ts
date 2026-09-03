@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core'
 import { sortCards, type Card, type SortMode } from '@/lib/model'
 
-export const hasAppShortcuts = Capacitor.isNativePlatform()
+const hasAppShortcuts = Capacitor.isNativePlatform()
 
 export type ShortcutItem = { id: string; title: string; favorite: boolean }
 
