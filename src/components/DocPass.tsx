@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { BarcodeFullscreen } from '@/components/BarcodeFullscreen'
 import { CoverImage } from '@/components/CoverAdjust'
 import { ExpiryPill } from '@/components/ExpiryPill'
+import { PassNotches } from '@/components/PassNotches'
 import { usePhotoSrc } from '@/components/PhotoField'
 import { PhotoViewer } from '@/components/WallPass'
 import { useBarcodeSvg } from '@/hooks/use-barcode-svg'
@@ -95,26 +96,7 @@ export function DocPass({ doc, active, onToggle, onEdit, onDelete }: DocPassProp
           <div className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(115deg,rgba(255,255,255,0.14)_0%,rgba(255,255,255,0.04)_38%,transparent_39%)]" />
         )}
 
-        <AnimatePresence initial={false}>
-          {active && (
-            <>
-              <motion.span
-                key="notch-left"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1, transition: { type: 'spring', stiffness: 500, damping: 30 } }}
-                exit={{ scale: 0, transition: { delay: 0.18, duration: 0.15, ease: 'easeOut' } }}
-                className="absolute -bottom-3 -left-3 z-10 size-6 rounded-full bg-background"
-              />
-              <motion.span
-                key="notch-right"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1, transition: { type: 'spring', stiffness: 500, damping: 30 } }}
-                exit={{ scale: 0, transition: { delay: 0.18, duration: 0.15, ease: 'easeOut' } }}
-                className="absolute -right-3 -bottom-3 z-10 size-6 rounded-full bg-background"
-              />
-            </>
-          )}
-        </AnimatePresence>
+        <PassNotches active={active} />
 
         <button
           onClick={() => onToggle(doc.id)}

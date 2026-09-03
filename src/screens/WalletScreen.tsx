@@ -39,8 +39,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useBrightnessBoost } from '@/hooks/use-brightness-boost'
+import { useCardActions } from '@/hooks/use-card-actions'
 import { haptic } from '@/lib/haptics'
-import { sortCards, type Card, type SortMode, type ViewMode } from '@/lib/model'
+import { sortCards, type SortMode, type ViewMode } from '@/lib/model'
 import { createSampleCard } from '@/lib/sample-card'
 import { pressable } from '@/lib/utils'
 import { useOpenAddDrawer } from '@/state/add-drawer-context'
@@ -103,11 +104,12 @@ function EmptyState() {
 }
 
 export function WalletScreen() {
-  const { cards, addCard, updateCard, removeCard, moveCard, setCardOrder } = useWallet()
+  const { cards, addCard, updateCard, moveCard, setCardOrder } = useWallet()
   const { state, update } = useUiState()
+  const { pendingDelete, setPendingDelete, handleToggle, handleDelete, handleConfirmDelete, handleToggleFavorite } =
+    useCardActions()
   const [query, setQuery] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [pendingDelete, setPendingDelete] = useState<Card | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
 
   const searching = query.trim().length > 0
@@ -159,26 +161,6 @@ export function WalletScreen() {
     setQuery(event.target.value)
   }
 
-  function handleToggle(id: string) {
-    haptic('light')
-    update({ expandedCardId: state.expandedCardId === id ? null : id })
-  }
-
-  function handleDelete(id: string) {
-    const card = cards.find(current => current.id === id)
-    if (card !== undefined) setPendingDelete(card)
-  }
-
-  function handleConfirmDelete() {
-    if (pendingDelete === null) return
-    haptic('medium')
-    removeCard(pendingDelete.id)
-    if (state.expandedCardId === pendingDelete.id) {
-      update({ expandedCardId: null })
-    }
-    setPendingDelete(null)
-  }
-
   function handleDeckIndexChange(index: number) {
     update({ deckIndex: index })
   }
@@ -186,14 +168,6 @@ export function WalletScreen() {
   function handleRemoveFirstCard() {
     const first = visibleCards[0]
     if (first !== undefined) handleDelete(first.id)
-  }
-
-  function handleToggleFavorite(id: string) {
-    const card = cards.find(current => current.id === id)
-    if (card !== undefined) {
-      haptic('light')
-      updateCard(id, { favorite: !card.favorite })
-    }
   }
 
   return (

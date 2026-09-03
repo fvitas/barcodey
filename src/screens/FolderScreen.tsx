@@ -18,6 +18,7 @@ import { EditDrawer } from '@/components/EditDrawer'
 import { SortablePass } from '@/components/SortablePass'
 import { Input } from '@/components/ui/input'
 import { useBrightnessBoost } from '@/hooks/use-brightness-boost'
+import { useCardActions } from '@/hooks/use-card-actions'
 import { cardFace } from '@/lib/color'
 import { haptic } from '@/lib/haptics'
 import { orderFolderCards, type Card, type Folder } from '@/lib/model'
@@ -166,12 +167,12 @@ function FolderEditDrawer({ folder, open, onClose, onRename, onDelete }: FolderE
 
 export function FolderScreen() {
   const { folderId } = useParams()
-  const { cards, folders, updateCard, removeCard, renameFolder, removeFolder, setCardFolder, setFolderCardOrder } =
-    useWallet()
-  const { state, update } = useUiState()
+  const { cards, folders, updateCard, renameFolder, removeFolder, setCardFolder, setFolderCardOrder } = useWallet()
+  const { state } = useUiState()
+  const { pendingDelete, setPendingDelete, handleToggle, handleDelete, handleConfirmDelete, handleToggleFavorite } =
+    useCardActions()
   const navigate = useNavigate()
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [pendingDelete, setPendingDelete] = useState<Card | null>(null)
   const [addCardsOpen, setAddCardsOpen] = useState(false)
   const [folderEditOpen, setFolderEditOpen] = useState(false)
 
@@ -209,34 +210,6 @@ export function FolderScreen() {
     const [moved] = ids.splice(from, 1)
     ids.splice(to, 0, moved)
     setFolderCardOrder(folder.id, ids)
-  }
-
-  function handleToggle(id: string) {
-    haptic('light')
-    update({ expandedCardId: state.expandedCardId === id ? null : id })
-  }
-
-  function handleDelete(id: string) {
-    const card = cards.find(current => current.id === id)
-    if (card !== undefined) setPendingDelete(card)
-  }
-
-  function handleConfirmDelete() {
-    if (pendingDelete === null) return
-    haptic('medium')
-    removeCard(pendingDelete.id)
-    if (state.expandedCardId === pendingDelete.id) {
-      update({ expandedCardId: null })
-    }
-    setPendingDelete(null)
-  }
-
-  function handleToggleFavorite(id: string) {
-    const card = cards.find(current => current.id === id)
-    if (card !== undefined) {
-      haptic('light')
-      updateCard(id, { favorite: !card.favorite })
-    }
   }
 
   function handleDeleteFolder() {
