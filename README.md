@@ -1,14 +1,40 @@
-# Barcodey
+# Barcodey — Loyalty Card Wallet
 
-A fast, private wallet for loyalty cards, membership cards, and documents. Everything lives on your device — no account, no cloud, no tracking, fully offline.
+A fast, private wallet for loyalty cards, membership cards, gift cards, and documents. Scan a card once, show it at the register, and the barcode is on screen at full brightness. Everything stays on your phone — no account, no cloud, no ads, no tracking.
 
-## Features
+[![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
+![Platforms](https://img.shields.io/badge/platforms-iPhone%20%C2%B7%20Android-black.svg)
+![Privacy](https://img.shields.io/badge/data%20collected-none-brightgreen.svg)
 
-- Scan or type in any barcode (EAN, Code 128, QR, Data Matrix, and more)
-- Wallet-style card faces: brand logos and colors from a bundled catalog of 2,400+ brands, custom colors, cover photos
-- List, grid, and swipeable card-deck views, folders, favorites
-- Documents with expiry reminders
-- Light and dark mode
+<p align="center">
+  <img src=".github/readme/ios-light-1-deck.png" width="190" alt="Card deck view" />
+  <img src=".github/readme/ios-light-2-barcode.png" width="190" alt="Barcode at checkout" />
+  <img src=".github/readme/ios-dark-5-folders.png" width="190" alt="Folders in dark mode" />
+  <img src=".github/readme/ios-light-6-documents.png" width="190" alt="Documents behind Face ID" />
+</p>
+
+## Download
+
+- **iPhone** — App Store (in review, link coming)
+- **Android** — Google Play and GitHub Releases APK (coming next)
+
+## Why Barcodey
+
+- **Scan and go** — point the camera at any card and it's saved in seconds. EAN, UPC, Code 128, Code 39, ITF, QR, Aztec, Data Matrix, PDF417, and more. Scan from a photo or type the number by hand.
+- **Built for the checkout moment** — a card unfolds in place with the barcode on a white panel at maximum brightness. Hand-over mode locks the screen so you can pass the phone to the cashier.
+- **Looks like a wallet** — brand logos and colors from a bundled catalog of 2,400+ brands, custom colors, cover photos, or a color pulled from the card's own photo. Swipeable deck, list, and grid views.
+- **Folders and favorites** — group cards for groceries, gym, travel, or family. Favorites pin to the top; drag to reorder.
+- **Documents** — IDs, licences, and membership documents with front/back photos in a folder locked behind Face ID / fingerprint.
+- **Expiry reminders** — add an expiry date to any card or document and get a local notification 30, 7, and 1 day before.
+- **Move to a new phone without a cloud** — the old phone plays an animated QR sequence, the new phone scans it, and the whole wallet comes across. Nothing leaves the two screens.
+- **Quick actions** — long-press the app icon to jump straight to your top cards.
+- **Light and dark**, haptics, and no "premium" card limit.
+
+## Privacy
+
+Barcodey has no server and no account. Cards, documents, and photos are stored only on your device; the app never uploads anything you store in it. Barcode scanning runs on-device. Backups are files you export and keep wherever you choose.
+
+Full policy: https://fvitas.github.io/barcodey-privacy/
 
 ## Feedback
 
@@ -18,7 +44,7 @@ A fast, private wallet for loyalty cards, membership cards, and documents. Every
 
 ## Development
 
-Built with React, Vite, Tailwind, and Capacitor.
+Built with React, Vite, Tailwind, Motion, and Capacitor.
 
 ```sh
 pnpm install
