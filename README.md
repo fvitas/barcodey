@@ -15,7 +15,7 @@ A fast, private wallet for loyalty cards, membership cards, gift cards, and docu
 
 ## Download
 
-- **iPhone** — App Store (in review, link coming)
+- **iPhone** — [App Store](https://apps.apple.com/app/barcodey-loyalty-card-wallet/id6808041707)
 - **Android** — Google Play and GitHub Releases APK (coming next)
 
 ## Why Barcodey
