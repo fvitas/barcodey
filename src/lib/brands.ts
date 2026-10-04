@@ -7,16 +7,16 @@ const brandSchema = z.object({
   countries: z.array(z.string()), // lowercase ISO codes, or '001' for worldwide
   cat: z.string(),
   color: z.string().regex(/^#[0-9a-f]{6}$/),
-  logo: z.tuple([z.number().int().nonnegative(), z.number().int().nonnegative()]), // [sheet, cell]
+  logo: z.tuple([z.string().regex(/^[a-z]+$/), z.number().int().nonnegative()]), // [sheet, cell]
 })
 
 const brandCatalogSchema = z.object({
   version: z.literal(2),
-  sheetRows: z.array(z.number().int().positive()),
+  sheetRows: z.record(z.string(), z.number().int().positive()),
   brands: z.array(brandSchema),
 })
 
-export type BrandLogoCell = { sheet: number; cell: number; rows: number }
+export type BrandLogoCell = { sheet: string; cell: number; rows: number }
 
 export type Brand = Omit<z.infer<typeof brandSchema>, 'logo'> & { logo: BrandLogoCell }
 
@@ -83,12 +83,18 @@ export function searchBrands(brands: Brand[], query: string, country: string | u
 
 export type BrandGroup = { letter: string; brands: Brand[] }
 
-// A–Z sections for the picker; digits and non-latin initials pool under '#'
+// accents file under their base letter (É → E); digits and non-latin scripts pool under '#'.
+// Also decides the logo sprite sheet.
+export function brandLetter(name: string): string {
+  const initial = name.normalize('NFD').charAt(0).toUpperCase()
+  return /[A-Z]/.test(initial) ? initial : '#'
+}
+
+// A–Z sections for the picker
 export function groupBrandsByLetter(brands: Brand[]): BrandGroup[] {
   const groups = new Map<string, Brand[]>()
   for (const brand of brands) {
-    const initial = brand.name.charAt(0).toUpperCase()
-    const letter = /[A-Z]/.test(initial) ? initial : '#'
+    const letter = brandLetter(brand.name)
     const group = groups.get(letter) ?? []
     group.push(brand)
     groups.set(letter, group)

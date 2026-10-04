@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { brandCategoryLabel, brandLogoStyle, groupBrandsByLetter, searchBrands, type Brand } from './brands'
+import { brandCategoryLabel, brandLetter, brandLogoStyle, groupBrandsByLetter, searchBrands, type Brand } from './brands'
 
 function brand(overrides: Partial<Brand> & { id: string; name: string }): Brand {
-  return { countries: ['001'], cat: 'supermarket', color: '#0050aa', logo: { sheet: 0, cell: 0, rows: 1 }, ...overrides }
+  return { countries: ['001'], cat: 'supermarket', color: '#0050aa', logo: { sheet: 'a', cell: 0, rows: 1 }, ...overrides }
 }
 
 const catalog: Brand[] = [
@@ -72,15 +72,28 @@ describe('brandCategoryLabel', () => {
 
 describe('brandLogoStyle', () => {
   it('scales the sheet so one 96px cell fills the element', () => {
-    const style = brandLogoStyle({ sheet: 3, cell: 0, rows: 2 })
-    expect(style.backgroundImage).toBe('url(/brands/logos-3.webp)')
+    const style = brandLogoStyle({ sheet: 'c', cell: 0, rows: 2 })
+    expect(style.backgroundImage).toBe('url(/brands/logos-c.webp)')
     expect(style.backgroundSize).toBe(`${(1_664 / 96) * 100}% ${(208 / 96) * 100}%`)
   })
 
   it('positions on the cell inside its gutter', () => {
-    expect(brandLogoStyle({ sheet: 0, cell: 0, rows: 2 }).backgroundPosition).toBe(`${(4 / 1_568) * 100}% ${(4 / 112) * 100}%`)
-    expect(brandLogoStyle({ sheet: 0, cell: 17, rows: 2 }).backgroundPosition).toBe(
+    expect(brandLogoStyle({ sheet: 'a', cell: 0, rows: 2 }).backgroundPosition).toBe(`${(4 / 1_568) * 100}% ${(4 / 112) * 100}%`)
+    expect(brandLogoStyle({ sheet: 'a', cell: 17, rows: 2 }).backgroundPosition).toBe(
       `${(108 / 1_568) * 100}% ${(108 / 112) * 100}%`,
     )
+  })
+})
+
+describe('brandLetter', () => {
+  it('files accents under the base letter', () => {
+    expect(brandLetter('lidl')).toBe('L')
+    expect(brandLetter('Éxito')).toBe('E')
+    expect(brandLetter('Åhléns')).toBe('A')
+  })
+
+  it('pools digits and non-latin scripts under #', () => {
+    expect(brandLetter('7-Eleven')).toBe('#')
+    expect(brandLetter('Вита')).toBe('#')
   })
 })

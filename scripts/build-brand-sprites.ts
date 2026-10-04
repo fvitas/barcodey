@@ -52,7 +52,7 @@ async function isStale(rawFile: string, tinyFile: string): Promise<boolean> {
 
 async function main() {
   const quality = parseQuality()
-  const sheets = (await readdir(rawSheetDir)).filter(file => /^logos-\d+\.png$/.test(file))
+  const sheets = (await readdir(rawSheetDir)).filter(file => /^logos-[a-z]+\.png$/.test(file))
   const stale: string[] = []
   for (const file of sheets) {
     const tinyFile = path.join(tinySheetDir, file)

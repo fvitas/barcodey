@@ -11,6 +11,7 @@ import { mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
+import { brandLetter } from '../src/lib/brands.ts'
 
 const scriptsDir = path.dirname(fileURLToPath(import.meta.url))
 const cacheDir = path.join(scriptsDir, '.cache')
@@ -22,7 +23,6 @@ const rawSheetDir = path.join(scriptsDir, 'sprites', 'raw')
 const logoSize = 96
 const logoPitch = 104
 const logoColumns = 16
-const sheetCount = 20
 // Wikimedia's bot policy 429s user agents without contact info — keep the URL in
 const userAgent = 'barcodey-brand-catalog/1.0 (https://github.com/fvitas/barcodey)'
 
@@ -423,21 +423,27 @@ type CatalogEntry = {
   countries: string[]
   cat: string
   color: string
-  logo?: [sheet: number, cell: number]
+  logo?: [sheet: string, cell: number]
 }
 
-// hashing the id keeps a brand on the same sheet across runs, so a new brand rewrites one sheet, not all
-function sheetOf(id: string): number {
-  return createHash('sha1').update(id).digest().readUInt32BE(0) % sheetCount
+// one sheet per picker letter: the A–Z list only loads the sheets on screen, and a new brand rewrites one sheet
+function sheetOf(name: string): string {
+  const letter = brandLetter(name)
+  return letter === '#' ? 'other' : letter.toLowerCase()
 }
 
 // packs the cached logos into lossless png sheets, assigns entry.logo, returns rows per sheet
-async function buildSprites(entries: CatalogEntry[]): Promise<number[]> {
+async function buildSprites(entries: CatalogEntry[]): Promise<Record<string, number>> {
   await mkdir(rawSheetDir, { recursive: true })
-  const changed: number[] = []
-  const sheets: CatalogEntry[][] = Array.from({ length: sheetCount }, () => [])
-  for (const entry of entries) sheets[sheetOf(entry.id)].push(entry)
-  const sheetRows: number[] = []
+  const changed: string[] = []
+  const sheets = new Map<string, CatalogEntry[]>()
+  for (const entry of entries) {
+    const sheet = sheetOf(entry.name)
+    const members = sheets.get(sheet) ?? []
+    members.push(entry)
+    sheets.set(sheet, members)
+  }
+  const sheetRows: Record<string, number> = {}
   for (const [sheet, members] of sheets.entries()) {
     members.sort((a, b) => (a.id < b.id ? -1 : 1))
     const rows = Math.max(1, Math.ceil(members.length / logoColumns))
@@ -460,15 +466,15 @@ async function buildSprites(entries: CatalogEntry[]): Promise<number[]> {
       .toBuffer()
     const file = path.join(rawSheetDir, `logos-${sheet}.png`)
     const previous = await readFile(file).catch(() => undefined)
-    // untouched sheets keep their mtime, so build:sprites only flags the ones that need re-tinifying
+    // rewrite only on change, so the log names exactly the sheets to re-tinify
     if (previous === undefined || !previous.equals(png)) {
       await writeFile(file, png)
       changed.push(sheet)
     }
-    sheetRows.push(rows)
+    sheetRows[sheet] = rows
   }
   for (const file of await readdir(rawSheetDir)) {
-    if (!/^logos-\d+\.png$/.test(file) || Number(file.match(/\d+/)?.[0]) >= sheetCount) await rm(path.join(rawSheetDir, file))
+    if (!sheets.has(file.replace(/^logos-|\.png$/g, ''))) await rm(path.join(rawSheetDir, file))
   }
   console.log(changed.length > 0 ? `sheets changed — run through TinyPNG: ${changed.map(sheet => `logos-${sheet}.png`).join(', ')}` : 'sheets unchanged')
   return sheetRows
@@ -567,7 +573,7 @@ async function main() {
   await writeFile(path.join(outDir, 'catalog.json'), JSON.stringify(catalog))
 
   // stale files from previous runs would otherwise ship forever
-  const valid = new Set(['catalog.json', ...sheetRows.map((_, sheet) => `logos-${sheet}.webp`)])
+  const valid = new Set(['catalog.json', ...Object.keys(sheetRows).map(sheet => `logos-${sheet}.webp`)])
   for (const file of await readdir(outDir)) {
     if (!valid.has(file)) await rm(path.join(outDir, file))
   }
