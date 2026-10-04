@@ -1,8 +1,9 @@
 import { CheckIcon, PlusIcon, XIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { BrandLogo } from '@/components/BrandLogo'
 import { BrandPicker } from '@/components/BrandPicker'
 import { cardColorGradient } from '@/lib/color'
-import { brandLogoSrc, loadBrandCatalog, type Brand } from '@/lib/brands'
+import { loadBrandCatalog, type Brand } from '@/lib/brands'
 import { pressable } from '@/lib/utils'
 
 type BrandFieldProps = {
@@ -68,14 +69,9 @@ export function BrandField({ brandId, brandBg, onPick, onClear, onToggleBg }: Br
                   showBg ? 'rounded-xl bg-white shadow-sm shadow-black/15' : ''
                 }`}
               >
-                <img
-                  src={brandLogoSrc(brand.id)}
-                  alt=""
-                  className={
-                    showBg
-                      ? 'size-[70%] object-contain'
-                      : 'size-full object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]'
-                  }
+                <BrandLogo
+                  logo={brand.logo}
+                  className={showBg ? 'size-[70%]' : 'size-full drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]'}
                 />
               </span>
               <span className="truncate text-sm font-extrabold text-white">{brand.name}</span>

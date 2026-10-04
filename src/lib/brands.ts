@@ -7,17 +7,38 @@ const brandSchema = z.object({
   countries: z.array(z.string()), // lowercase ISO codes, or '001' for worldwide
   cat: z.string(),
   color: z.string().regex(/^#[0-9a-f]{6}$/),
+  logo: z.tuple([z.number().int().nonnegative(), z.number().int().nonnegative()]), // [sheet, cell]
 })
 
 const brandCatalogSchema = z.object({
-  version: z.literal(1),
+  version: z.literal(2),
+  sheetRows: z.array(z.number().int().positive()),
   brands: z.array(brandSchema),
 })
 
-export type Brand = z.infer<typeof brandSchema>
+export type BrandLogoCell = { sheet: number; cell: number; rows: number }
 
-export function brandLogoSrc(brandId: string): string {
-  return `/brands/${brandId}.webp`
+export type Brand = Omit<z.infer<typeof brandSchema>, 'logo'> & { logo: BrandLogoCell }
+
+// sprite geometry — must match scripts/build-brand-catalog.ts
+const logoSize = 96
+const logoPitch = 104
+const logoColumns = 16
+
+export type BrandLogoStyle = { backgroundImage: string; backgroundSize: string; backgroundPosition: string }
+
+// percentages keep the cell aligned at any element size, as long as the element is square
+export function brandLogoStyle({ sheet, cell, rows }: BrandLogoCell): BrandLogoStyle {
+  const inset = (logoPitch - logoSize) / 2
+  const sheetWidth = logoColumns * logoPitch
+  const sheetHeight = rows * logoPitch
+  const x = ((cell % logoColumns) * logoPitch + inset) / (sheetWidth - logoSize)
+  const y = (Math.floor(cell / logoColumns) * logoPitch + inset) / (sheetHeight - logoSize)
+  return {
+    backgroundImage: `url(/brands/logos-${sheet}.webp)`,
+    backgroundSize: `${(sheetWidth / logoSize) * 100}% ${(sheetHeight / logoSize) * 100}%`,
+    backgroundPosition: `${x * 100}% ${y * 100}%`,
+  }
 }
 
 export function brandCategoryLabel(brand: Brand): string {
@@ -78,6 +99,12 @@ export function groupBrandsByLetter(brands: Brand[]): BrandGroup[] {
 }
 
 let catalogPromise: Promise<Brand[]> | null = null
+let brandsById: Map<string, Brand> | null = null
+
+// null until loadBrandCatalog has resolved once
+export function loadedBrandIndex(): ReadonlyMap<string, Brand> | null {
+  return brandsById
+}
 
 export function loadBrandCatalog(): Promise<Brand[]> {
   // a failed load must not stick for the session — drop the cache and retry next call
@@ -86,7 +113,15 @@ export function loadBrandCatalog(): Promise<Brand[]> {
       if (!response.ok) throw new Error(`catalog HTTP ${response.status}`)
       return response.json()
     })
-    .then(json => brandCatalogSchema.parse(json).brands)
+    .then(json => {
+      const { sheetRows, brands } = brandCatalogSchema.parse(json)
+      const parsed = brands.map(({ logo: [sheet, cell], ...brand }) => ({
+        ...brand,
+        logo: { sheet, cell, rows: sheetRows[sheet] ?? 1 },
+      }))
+      brandsById = new Map(parsed.map(brand => [brand.id, brand]))
+      return parsed
+    })
     .catch((error: unknown) => {
       catalogPromise = null
       throw error

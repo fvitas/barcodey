@@ -1,6 +1,7 @@
 // Brand catalog pipeline — merges name-suggestion-index (names, aliases, countries, QIDs),
 // Wikidata (logo P154, brand color P465) and Wikimedia Commons (logo files) into the
-// bundled catalog: public/brands/catalog.json + public/brands/<id>.webp
+// bundled catalog: public/brands/catalog.json + lossless sprite sheets in scripts/sprites/raw/.
+// Sheets go through TinyPNG by hand into scripts/sprites/tiny/, then `pnpm build:sprites` writes the webps.
 //
 // run: node scripts/build-brand-catalog.ts [--only shop/supermarket] [--limit 50]
 // Downloads are cached in scripts/.cache/ — delete it to force a full refresh.
@@ -14,6 +15,14 @@ import sharp from 'sharp'
 const scriptsDir = path.dirname(fileURLToPath(import.meta.url))
 const cacheDir = path.join(scriptsDir, '.cache')
 const outDir = path.join(scriptsDir, '..', 'public', 'brands')
+// lossless per-brand 96px logos, the input for the sprite sheets
+const logoCacheDir = path.join(cacheDir, 'png')
+const rawSheetDir = path.join(scriptsDir, 'sprites', 'raw')
+// sprite geometry — must match logoSize/logoPitch/logoColumns in src/lib/brands.ts
+const logoSize = 96
+const logoPitch = 104
+const logoColumns = 16
+const sheetCount = 20
 // Wikimedia's bot policy 429s user agents without contact info — keep the URL in
 const userAgent = 'barcodey-brand-catalog/1.0 (https://github.com/fvitas/barcodey)'
 
@@ -324,7 +333,7 @@ async function fetchWikidata(brands: Brand[]): Promise<void> {
 
 // a single pathological Commons file can grind libvips for hours and wedge the
 // threadpool-backed pool — race each brand against a hard timeout and move on
-async function processLogo(brand: Brand): Promise<{ webp: Buffer; color: string } | undefined> {
+async function processLogo(brand: Brand): Promise<{ png: Buffer; color: string } | undefined> {
   const timeout = new Promise<undefined>(resolve => setTimeout(() => resolve(undefined), 60_000))
   const started = Date.now()
   const result = await Promise.race([processLogoInner(brand), timeout])
@@ -333,7 +342,7 @@ async function processLogo(brand: Brand): Promise<{ webp: Buffer; color: string 
   return result
 }
 
-async function processLogoInner(brand: Brand): Promise<{ webp: Buffer; color: string } | undefined> {
+async function processLogoInner(brand: Brand): Promise<{ png: Buffer; color: string } | undefined> {
   if (brand.logoUrl === undefined) return undefined
   try {
     // Special:FilePath and the thumb service both rate-limit hard; the upload CDN does not.
@@ -356,20 +365,20 @@ async function processLogoInner(brand: Brand): Promise<{ webp: Buffer; color: st
     } catch {
       // trim fails on fully-uniform images; keep the original
     }
-    const webp = await image
-      .resize(96, 96, { fit: 'inside', withoutEnlargement: false })
-      .webp({ quality: 82 })
+    const png = await image
+      .resize(logoSize, logoSize, { fit: 'inside', withoutEnlargement: false })
+      .png({ compressionLevel: 9 })
       .toBuffer()
     let color = brand.color
     if (color === undefined) {
-      const { data } = await sharp(webp)
+      const { data } = await sharp(png)
         .resize(48, 48, { fit: 'inside' })
         .ensureAlpha()
         .raw()
         .toBuffer({ resolveWithObject: true })
       color = extractColor(new Uint8ClampedArray(data.buffer, data.byteOffset, data.byteLength))
     }
-    return { webp, color: color ?? '#475569' }
+    return { png, color: color ?? '#475569' }
   } catch (error) {
     console.warn(`logo failed ${brand.name} (${brand.qid}): ${String(error)}`)
     return undefined
@@ -407,9 +416,68 @@ async function loadSeeds(): Promise<{ brand: Brand; file: string }[]> {
   }
 }
 
+type CatalogEntry = {
+  id: string
+  name: string
+  aliases?: string[]
+  countries: string[]
+  cat: string
+  color: string
+  logo?: [sheet: number, cell: number]
+}
+
+// hashing the id keeps a brand on the same sheet across runs, so a new brand rewrites one sheet, not all
+function sheetOf(id: string): number {
+  return createHash('sha1').update(id).digest().readUInt32BE(0) % sheetCount
+}
+
+// packs the cached logos into lossless png sheets, assigns entry.logo, returns rows per sheet
+async function buildSprites(entries: CatalogEntry[]): Promise<number[]> {
+  await mkdir(rawSheetDir, { recursive: true })
+  const changed: number[] = []
+  const sheets: CatalogEntry[][] = Array.from({ length: sheetCount }, () => [])
+  for (const entry of entries) sheets[sheetOf(entry.id)].push(entry)
+  const sheetRows: number[] = []
+  for (const [sheet, members] of sheets.entries()) {
+    members.sort((a, b) => (a.id < b.id ? -1 : 1))
+    const rows = Math.max(1, Math.ceil(members.length / logoColumns))
+    const composite = await Promise.all(
+      members.map(async (entry, cell) => {
+        entry.logo = [sheet, cell]
+        const input = await readFile(path.join(logoCacheDir, `${entry.id}.png`))
+        const { width = logoSize, height = logoSize } = await sharp(input).metadata()
+        return {
+          input,
+          left: (cell % logoColumns) * logoPitch + Math.floor((logoPitch - width) / 2),
+          top: Math.floor(cell / logoColumns) * logoPitch + Math.floor((logoPitch - height) / 2),
+        }
+      }),
+    )
+    const canvas = { width: logoColumns * logoPitch, height: rows * logoPitch, channels: 4 as const }
+    const png = await sharp({ create: { ...canvas, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+      .composite(composite)
+      .png({ compressionLevel: 9 })
+      .toBuffer()
+    const file = path.join(rawSheetDir, `logos-${sheet}.png`)
+    const previous = await readFile(file).catch(() => undefined)
+    // untouched sheets keep their mtime, so build:sprites only flags the ones that need re-tinifying
+    if (previous === undefined || !previous.equals(png)) {
+      await writeFile(file, png)
+      changed.push(sheet)
+    }
+    sheetRows.push(rows)
+  }
+  for (const file of await readdir(rawSheetDir)) {
+    if (!/^logos-\d+\.png$/.test(file) || Number(file.match(/\d+/)?.[0]) >= sheetCount) await rm(path.join(rawSheetDir, file))
+  }
+  console.log(changed.length > 0 ? `sheets changed — run through TinyPNG: ${changed.map(sheet => `logos-${sheet}.png`).join(', ')}` : 'sheets unchanged')
+  return sheetRows
+}
+
 async function main() {
   const { only, limit } = parseArgs()
   await mkdir(outDir, { recursive: true })
+  await mkdir(logoCacheDir, { recursive: true })
 
   const byQid = await collectNsi(only)
   let brands = [...byQid.values()]
@@ -436,8 +504,7 @@ async function main() {
     seen.add(brand.id)
   }
 
-  const entries: { id: string; name: string; aliases?: string[]; countries: string[]; cat: string; color: string }[] =
-    []
+  const entries: CatalogEntry[] = []
   // manifest of already-processed logos (qid → extracted color) makes re-runs near-instant
   const manifestPath = path.join(cacheDir, 'processed.json')
   let manifest: Record<string, string> = {}
@@ -451,10 +518,10 @@ async function main() {
     done += 1
     if (done % 100 === 0) console.log(`logos: ${done}/${withLogo.length}`)
     let color = manifest[brand.qid]
-    if (color === undefined || !(await stat(path.join(outDir, `${brand.id}.webp`)).catch(() => false))) {
+    if (color === undefined || !(await stat(path.join(logoCacheDir, `${brand.id}.png`)).catch(() => false))) {
       const processed = await processLogo(brand)
       if (processed === undefined) return
-      await writeFile(path.join(outDir, `${brand.id}.webp`), processed.webp)
+      await writeFile(path.join(logoCacheDir, `${brand.id}.png`), processed.png)
       color = processed.color
       manifest[brand.qid] = color
     }
@@ -472,11 +539,11 @@ async function main() {
   for (const { brand, file } of await loadSeeds()) {
     try {
       const source = await readFile(file)
-      const webp = await sharp(source).resize(96, 96, { fit: 'inside' }).webp({ quality: 82 }).toBuffer()
-      await writeFile(path.join(outDir, `${brand.id}.webp`), webp)
+      const png = await sharp(source).resize(logoSize, logoSize, { fit: 'inside' }).png({ compressionLevel: 9 }).toBuffer()
+      await writeFile(path.join(logoCacheDir, `${brand.id}.png`), png)
       let color = brand.color
       if (color === undefined) {
-        const { data } = await sharp(webp).resize(48, 48, { fit: 'inside' }).ensureAlpha().raw().toBuffer({
+        const { data } = await sharp(png).resize(48, 48, { fit: 'inside' }).ensureAlpha().raw().toBuffer({
           resolveWithObject: true,
         })
         color = extractColor(new Uint8ClampedArray(data.buffer, data.byteOffset, data.byteLength)) ?? '#475569'
@@ -495,11 +562,12 @@ async function main() {
   }
 
   entries.sort((a, b) => a.name.localeCompare(b.name))
-  const catalog = { version: 1, brands: entries }
+  const sheetRows = await buildSprites(entries)
+  const catalog = { version: 2, sheetRows, brands: entries }
   await writeFile(path.join(outDir, 'catalog.json'), JSON.stringify(catalog))
 
-  // stale logos from previous runs would otherwise ship forever
-  const valid = new Set([...entries.map(entry => `${entry.id}.webp`), 'catalog.json'])
+  // stale files from previous runs would otherwise ship forever
+  const valid = new Set(['catalog.json', ...sheetRows.map((_, sheet) => `logos-${sheet}.webp`)])
   for (const file of await readdir(outDir)) {
     if (!valid.has(file)) await rm(path.join(outDir, file))
   }

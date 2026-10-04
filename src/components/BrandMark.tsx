@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { brandLogoSrc } from '@/lib/brands'
+import { BrandLogo } from '@/components/BrandLogo'
+import { useBrand } from '@/hooks/use-brand'
 
 type BrandMarkProps = {
   name: string
@@ -10,10 +10,9 @@ type BrandMarkProps = {
 
 // monogram is the fallback for brandless cards and ids missing from the catalog
 export function BrandMark({ name, brandId, brandBg, className }: BrandMarkProps) {
-  const [failedId, setFailedId] = useState<string | null>(null)
-  const showLogo = brandId !== undefined && brandId !== failedId
+  const brand = useBrand(brandId)
 
-  if (!showLogo) {
+  if (brand === null) {
     return (
       <span className={`flex shrink-0 items-center justify-center rounded-full bg-white/25 font-bold text-white ${className}`}>
         {name.charAt(0).toUpperCase()}
@@ -27,16 +26,12 @@ export function BrandMark({ name, brandId, brandBg, className }: BrandMarkProps)
         brandBg === false ? '' : 'rounded-xl bg-white shadow-sm shadow-black/15'
       } ${className}`}
     >
-      <img
-        src={brandLogoSrc(brandId)}
-        alt=""
-        onError={() => setFailedId(brandId)}
-        className={
-          brandBg === false
-            ? 'size-full object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]'
-            : 'size-[70%] object-contain'
-        }
-      />
+      {brand !== undefined && (
+        <BrandLogo
+          logo={brand.logo}
+          className={brandBg === false ? 'size-full drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]' : 'size-[70%]'}
+        />
+      )}
     </span>
   )
 }

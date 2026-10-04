@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { brandCategoryLabel, groupBrandsByLetter, searchBrands, type Brand } from './brands'
+import { brandCategoryLabel, brandLogoStyle, groupBrandsByLetter, searchBrands, type Brand } from './brands'
 
 function brand(overrides: Partial<Brand> & { id: string; name: string }): Brand {
-  return { countries: ['001'], cat: 'supermarket', color: '#0050aa', ...overrides }
+  return { countries: ['001'], cat: 'supermarket', color: '#0050aa', logo: { sheet: 0, cell: 0, rows: 1 }, ...overrides }
 }
 
 const catalog: Brand[] = [
@@ -67,5 +67,20 @@ describe('brandCategoryLabel', () => {
   it('prettifies category slugs', () => {
     expect(brandCategoryLabel(brand({ id: 'x', name: 'X', cat: 'fast_food' }))).toBe('Fast food')
     expect(brandCategoryLabel(brand({ id: 'y', name: 'Y' }))).toBe('Supermarket')
+  })
+})
+
+describe('brandLogoStyle', () => {
+  it('scales the sheet so one 96px cell fills the element', () => {
+    const style = brandLogoStyle({ sheet: 3, cell: 0, rows: 2 })
+    expect(style.backgroundImage).toBe('url(/brands/logos-3.webp)')
+    expect(style.backgroundSize).toBe(`${(1_664 / 96) * 100}% ${(208 / 96) * 100}%`)
+  })
+
+  it('positions on the cell inside its gutter', () => {
+    expect(brandLogoStyle({ sheet: 0, cell: 0, rows: 2 }).backgroundPosition).toBe(`${(4 / 1_568) * 100}% ${(4 / 112) * 100}%`)
+    expect(brandLogoStyle({ sheet: 0, cell: 17, rows: 2 }).backgroundPosition).toBe(
+      `${(108 / 1_568) * 100}% ${(108 / 112) * 100}%`,
+    )
   })
 })

@@ -5,13 +5,13 @@ import { Drawer } from 'vaul'
 import { Input } from '@/components/ui/input'
 import {
   brandCategoryLabel,
-  brandLogoSrc,
   groupBrandsByLetter,
   loadBrandCatalog,
   searchBrands,
   userCountry,
   type Brand,
 } from '@/lib/brands'
+import { BrandLogo } from '@/components/BrandLogo'
 import { SuggestBrandDrawer } from '@/components/SuggestBrandDrawer'
 import { pressable } from '@/lib/utils'
 
@@ -39,7 +39,7 @@ function BrandRow({ brand, onPick }: BrandRowProps) {
     >
       {/* white chip in both modes — dark wordmarks vanish on dark surfaces */}
       <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white ring-1 ring-black/10">
-        <img src={brandLogoSrc(brand.id)} alt="" loading="lazy" className="size-[66%] object-contain" />
+        <BrandLogo logo={brand.logo} className="size-[66%]" />
       </span>
       <span className="min-w-0">
         <span className="block truncate text-sm font-bold text-foreground">{brand.name}</span>
