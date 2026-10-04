@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { countryName, isCountryCode, listCountries, searchCountries } from '@/lib/countries'
+import { countryFlag, countryName, isCountryCode, listCountries, searchCountries } from '@/lib/countries'
 
 describe('countryName', () => {
   it('resolves english names from iso codes', () => {
@@ -9,6 +9,13 @@ describe('countryName', () => {
 
   it('falls back to the code for unknown input', () => {
     expect(countryName('!!')).toBe('!!')
+  })
+})
+
+describe('countryFlag', () => {
+  it('builds the emoji flag from the code', () => {
+    expect(countryFlag('rs')).toBe('🇷🇸')
+    expect(countryFlag('DE')).toBe('🇩🇪')
   })
 })
 

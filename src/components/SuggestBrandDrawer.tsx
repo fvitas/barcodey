@@ -4,7 +4,7 @@ import { Drawer } from 'vaul'
 import { CountryPicker } from '@/components/CountryPicker'
 import { Input } from '@/components/ui/input'
 import { userCountry } from '@/lib/brands'
-import { countryName, isCountryCode } from '@/lib/countries'
+import { countryFlag, countryName, isCountryCode } from '@/lib/countries'
 import { suggestBrandUrl } from '@/lib/feedback'
 import { focusOnMount, pressable } from '@/lib/utils'
 
@@ -66,7 +66,7 @@ export function SuggestBrandDrawer({ open, initialName, onClose }: SuggestBrandD
                   <span className="text-muted-foreground">Where it operates</span>
                 ) : (
                   <>
-                    <span className={`fi fi-${country} shrink-0 rounded-[3px] ring-1 ring-black/10`} />
+                    <span aria-hidden className="shrink-0 text-lg leading-none">{countryFlag(country)}</span>
                     <span className="truncate text-foreground">{countryName(country)}</span>
                   </>
                 )}

@@ -2,7 +2,7 @@ import { CheckIcon, ChevronLeftIcon, SearchIcon, XIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Drawer } from 'vaul'
 import { Input } from '@/components/ui/input'
-import { searchCountries, type Country } from '@/lib/countries'
+import { countryFlag, searchCountries, type Country } from '@/lib/countries'
 import { pressable } from '@/lib/utils'
 
 type CountryPickerProps = {
@@ -76,7 +76,7 @@ export function CountryPicker({ open, selected, onClose, onPick }: CountryPicker
                 onClick={() => handlePick(country)}
                 className={`${pressable} flex h-12 w-full items-center gap-3 px-5 text-left`}
               >
-                <span className={`fi fi-${country.code} shrink-0 rounded-[3px] text-lg ring-1 ring-black/10`} />
+                <span aria-hidden className="shrink-0 text-xl leading-none">{countryFlag(country.code)}</span>
                 <span className="min-w-0 flex-1 truncate text-sm font-bold text-foreground">{country.name}</span>
                 {country.code === selected && <CheckIcon className="size-4 shrink-0 text-primary" />}
               </button>
